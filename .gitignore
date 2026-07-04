@@ -1,0 +1,24 @@
+# Database
+*.db
+*.db-journal
+*.db-wal
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Uploaded files
+static/uploads/*
+!static/uploads/.gitkeep
+static/qr/*.png
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+venv/

@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1E3A5F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="HostelFlow - Tu guía de hotel">
+<link rel="manifest" href="/manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>HostelFlow</title>
+<style>
+:root {
+--primary: #1E3A5F;
+--primary-light: #2A4F7A;
+--accent: #F0B429;
+--accent-hover: #D9A224;
+--text: #3A3A3A;
+--text-light: #6B7280;
+--bg: #FFFFFF;
+--bg-secondary: #F9FAFB;
+--bg-card: #FFFFFF;
+--border: #E5E7EB;
+--shadow: 0 4px 24px rgba(0,0,0,0.08);
+--shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+--radius: 16px;
+--radius-sm: 12px;
+--radius-xs: 8px;
+--transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+--primary-rgb: 30,58,95;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+background: var(--bg);
+color: var(--text);
+line-height: 1.6;
+-webkit-font-smoothing: antialiased;
+overflow-x: hidden;
+min-height: 100vh;
+min-height: 100dvh;
+}
+img { max-width: 100%; display: block; }
+button { cursor: pointer; font-family: inherit; border: none; background: none; }
+input, select, textarea { font-family: inherit; }
+a { text-decoration: none; color: inherit; }
+
+/* ===== UTILITIES ===== */
+.hidden { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+/* ===== VIEWS ===== */
+.view {
+position: fixed; inset: 0;
+display: flex; flex-direction: column;
+background: var(--bg);
+z-index: 1;
+opacity: 0; transform: translateX(40px);
+pointer-events: none;
+transition: opacity 0.4s ease, transform 0.4s ease;
+overflow-y: auto; overflow-x: hidden;
+-webkit-overflow-scrolling: touch;
+}
+.view.active {
+opacity: 1; transform: translateX(0);
+pointer-events: auto;
+}
+.view.slide-out {
+opacity: 0; transform: translateX(-40px);
+}
+.view.scrollable { position: relative; min-height: 100vh; min-height: 100dvh; position: static; }
+
+/* ===== LOADING SCREEN ===== */
+#loading-screen {
+position: fixed; inset: 0;
+background: var(--primary);
+display: flex; flex-direction: column;
+align-items: center; justify-content: center;
+z-index: 9999;
+transition: opacity 0.6s ease;
+}
+#loading-screen.fade-out { opacity: 0; pointer-events: none; }
+.loader-spinner {
+width: 48px; height: 48px;
+border: 3px solid rgba(255,255,255,0.2);
+border-top-color: var(--accent);
+border-radius: 50%;
+animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader-text { color: #fff; margin-top: 20px; font-size: 16px; font-weight: 300; letter-spacing: 0.5px; }
+.loader-logo{width:72px;height:72px;border-radius:16px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;margin-bottom:20px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.2);overflow:hidden}
+.loader-logo img{max-width:56px;max-height:56px;object-fit:contain}
+.loader-logo .loader-initial{font-size:32px;font-weight:700;color:var(--accent)}
+
+/* Popup Modal */
+.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px}
+.popup-overlay.hidden{display:none}
+.popup-modal{background:#fff;border-radius:var(--radius);max-width:400px;width:100%;overflow:hidden;box-shadow:var(--shadow-lg);position:relative}
+.popup-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;z-index:1}
+.popup-img{width:100%;height:200px;object-fit:cover}
+.popup-body{padding:20px}
+.popup-body h3{font-size:18px;font-weight:700;margin-bottom:8px}
+.popup-body p{font-size:14px;color:var(--text-light);margin-bottom:16px;line-height:1.5}
+
+/* ===== WELCOME SCREEN ===== */
+#welcome-view {
+position: relative;
+background: var(--primary);
+color: #fff;
+}
+.welcome-bg {
+position: absolute; inset: 0;
+background-size: cover; background-position: center;
+}
+.welcome-bg::after {
+content: '';
+position: absolute; inset: 0;
+background: linear-gradient(180deg, rgba(30,58,95,0.4) 0%, rgba(30,58,95,0.85) 70%, rgba(30,58,95,1) 100%);
+}
+.welcome-content {
+position: relative; z-index: 2;
+display: flex; flex-direction: column;
+align-items: center; justify-content: flex-end;
+min-height: 100vh; min-height: 100dvh;
+padding: 40px 24px 60px;
+text-align: center;
+}
+.welcome-logo {
+width: 80px; height: 80px;
+background: rgba(255,255,255,0.15);
+border-radius: 20px;
+display: flex; align-items: center; justify-content: center;
+margin-bottom: 24px; backdrop-filter: blur(10px);
+border: 1px solid rgba(255,255,255,0.2);
+}
+.welcome-logo img { max-width: 56px; max-height: 56px; object-fit: contain; }
+.welcome-logo .logo-placeholder { font-size: 32px; font-weight: 700; color: var(--accent); }
+.welcome-hotel-name {
+font-size: 32px; font-weight: 700;
+letter-spacing: -0.5px; margin-bottom: 8px;
+line-height: 1.2;
+}
+.welcome-subtitle {
+font-size: 17px; font-weight: 300;
+opacity: 0.85; margin-bottom: 48px;
+line-height: 1.5;
+}
+.btn-primary {
+display: inline-flex; align-items: center; justify-content: center;
+gap: 10px;
+background: var(--accent); color: #fff;
+padding: 16px 48px; border-radius: 50px;
+font-size: 17px; font-weight: 600;
+letter-spacing: 0.3px;
+transition: var(--transition);
+box-shadow: 0 4px 20px rgba(240,180,41,0.4);
+min-height: 56px;
+width: 100%; max-width: 320px;
+}
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 6px 28px rgba(240,180,41,0.5); }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+/* ===== ONBOARDING ===== */
+#onboarding-view { background: var(--bg); }
+.onboard-header {
+padding: 20px 24px;
+text-align: center;
+border-bottom: 1px solid var(--border);
+}
+.onboard-header h1 { font-size: 24px; font-weight: 700; color: var(--primary); }
+.onboard-header p { font-size: 14px; color: var(--text-light); margin-top: 4px; }
+.onboard-body {
+padding: 32px 24px;
+flex: 1;
+overflow-y: auto;
+}
+.form-group { margin-bottom: 20px; }
+.form-label {
+display: block;
+font-size: 13px; font-weight: 600;
+color: var(--text-light);
+margin-bottom: 6px;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+}
+.form-input {
+width: 100%;
+padding: 14px 16px;
+border: 1.5px solid var(--border);
+border-radius: var(--radius-xs);
+font-size: 16px;
+color: var(--text);
+background: var(--bg-secondary);
+transition: var(--transition);
+outline: none;
+-webkit-appearance: none;
+appearance: none;
+}
+.form-input:focus {
+border-color: var(--primary);
+background: #fff;
+box-shadow: 0 0 0 3px rgba(30,58,95,0.1);
+}
+.form-input::placeholder { color: #B0B8C4; }
+select.form-input {
+background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7280' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+background-repeat: no-repeat;
+background-position: right 16px center;
+padding-right: 40px;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.consent-group {
+display: flex; align-items: flex-start; gap: 12px;
+padding: 16px; background: var(--bg-secondary);
+border-radius: var(--radius-xs);
+}
+.consent-group input[type="checkbox"] {
+width: 20px; height: 20px;
+margin-top: 2px; flex-shrink: 0;
+accent-color: var(--primary);
+}
+.consent-group label { font-size: 13px; color: var(--text-light); line-height: 1.5; }
+.onboard-footer { padding: 16px 24px 32px; }
+
+/* ===== HOME VIEW ===== */
+#home-view { background: var(--bg-secondary); }
+.home-header {
+  background: var(--primary);
+  padding: 0 16px;
+  height: 52px;
+  color: #fff;
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.08);
+}
+.home-header.scrolled {
+  backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(var(--primary-rgb), 0.85);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.home-brand { display: flex; align-items: center; gap: 10px; }
+.home-brand-logo {
+  width: 32px; height: 32px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.home-brand-logo img { max-width: 24px; max-height: 24px; object-fit: contain; }
+.home-brand-logo .logo-sm { font-size: 14px; font-weight: 700; color: var(--accent); }
+.home-brand-name { font-size: 14px; font-weight: 600; letter-spacing: -0.2px; white-space: nowrap; }
+.home-lang-btn {
+  padding: 5px 12px; border-radius: 14px;
+  background: rgba(255,255,255,0.1);
+  color: #fff; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+
+/* Welcome Card (outside header) */
+.home-welcome {
+  padding: 20px 20px 4px;
+}
+.home-welcome h1 {
+  font-size: 24px; font-weight: 700;
+  line-height: 1.15; letter-spacing: -0.5px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.home-welcome-accent {
+  width: 28px; height: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+  margin-bottom: 8px;
+}
+.home-welcome p {
+  font-size: 13px; font-weight: 400;
+  color: var(--text-light);
+  margin: 0;
+}
+
+.home-content { padding: 0 0 72px; }
+
+/* PWA Install Banner */
+.pwa-banner {
+margin: 16px 16px 0;
+padding: 16px 20px;
+background: linear-gradient(135deg, var(--primary), var(--primary-light));
+border-radius: var(--radius);
+color: #fff;
+display: flex; align-items: center; gap: 14px;
+box-shadow: var(--shadow);
+}
+.pwa-banner-icon { flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.pwa-banner-icon svg { width: 32px; height: 32px; color: #fff; }
+.pwa-banner-text { flex: 1; }
+.pwa-banner-text h3 { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+.pwa-banner-text p { font-size: 12px; opacity: 0.8; }
+.pwa-banner-close {
+color: #fff; opacity: 0.6; padding: 4px;
+font-size: 20px; line-height: 1;
+}
+.pwa-banner-close:hover { opacity: 1; }
+
+/* Module Grid */
+.section-title {
+font-size: 17px; font-weight: 700;
+color: var(--text);
+padding: 28px 20px 14px;
+letter-spacing: -0.3px;
+}
+.module-grid {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 12px;
+padding: 0 16px;
+}
+.module-card {
+background: var(--bg-card);
+border-radius: var(--radius);
+padding: 20px 16px;
+text-align: center;
+box-shadow: var(--shadow);
+transition: var(--transition);
+position: relative;
+overflow: hidden;
+}
+.module-card::before {
+content: '';
+position: absolute; top: 0; left: 0; right: 0;
+height: 3px; background: var(--accent);
+transform: scaleX(0); transform-origin: left;
+transition: transform 0.3s ease;
+}
+.module-card:hover::before, .module-card:active::before { transform: scaleX(1); }
+.module-card:active { transform: scale(0.97); }
+.module-icon {
+width: 56px; height: 56px;
+margin: 0 auto 12px;
+background: var(--bg-secondary);
+border-radius: 16px;
+display: flex; align-items: center; justify-content: center;
+color: var(--primary);
+}
+.module-icon svg { width: 28px; height: 28px; }
+.module-card h3 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.module-card p { font-size: 12px; color: var(--text-light); line-height: 1.4; }
+.module-stage {
+position: absolute; top: 8px; right: 8px;
+font-size: 10px; font-weight: 600;
+padding: 2px 8px; border-radius: 10px;
+text-transform: uppercase; letter-spacing: 0.3px;
+}
+.stage-pre-arrival { background: #DBEAFE; color: #1D4ED8; }
+.stage-in-stay { background: #D1FAE5; color: #065F46; }
+.stage-pre-checkout { background: #FEF3C7; color: #92400E; }
+
+/* Promos */
+.promo-scroll {
+display: flex; gap: 12px;
+padding: 0 16px;
+overflow-x: auto;
+scroll-snap-type: x mandatory;
+-webkit-overflow-scrolling: touch;
+scrollbar-width: none;
+}
+.promo-scroll::-webkit-scrollbar { display: none; }
+.promo-card {
+min-width: 280px; max-width: 300px;
+background: var(--bg-card);
+border-radius: var(--radius);
+overflow: hidden;
+box-shadow: var(--shadow);
+scroll-snap-align: start;
+flex-shrink: 0;
+transition: var(--transition);
+}
+.promo-card:active { transform: scale(0.98); }
+.promo-img {
+width: 100%; height: 160px;
+object-fit: cover;
+background: var(--bg-secondary);
+}
+.promo-body { padding: 16px; }
+.promo-body h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.promo-body p { font-size: 13px; color: var(--text-light); margin-bottom: 12px; line-height: 1.5; }
+.promo-price {
+font-size: 20px; font-weight: 700; color: var(--accent);
+margin-bottom: 12px;
+}
+.btn-cta {
+display: inline-flex; align-items: center; gap: 6px;
+background: var(--primary); color: #fff;
+padding: 10px 20px; border-radius: 8px;
+font-size: 14px; font-weight: 500;
+transition: var(--transition);
+}
+.btn-cta:hover { background: var(--primary-light); }
+.btn-cta::after { content: none; }
+
+/* FAQ */
+.faq-list { padding: 0 16px; }
+.faq-item {
+background: var(--bg-card);
+border-radius: var(--radius-sm);
+margin-bottom: 8px;
+box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+overflow: hidden;
+}
+.faq-question {
+width: 100%;
+padding: 16px 20px;
+display: flex; align-items: center; justify-content: space-between;
+text-align: left;
+font-size: 15px; font-weight: 500; color: var(--text);
+transition: var(--transition);
+}
+.faq-question:hover { background: var(--bg-secondary); }
+.faq-arrow {
+width: 24px; height: 24px;
+display: flex; align-items: center; justify-content: center;
+transition: transform 0.3s ease;
+color: var(--text-light);
+flex-shrink: 0;
+}
+.faq-arrow svg { width: 16px; height: 16px; }
+.faq-item.open .faq-arrow { transform: rotate(180deg); }
+.faq-answer {
+max-height: 0;
+overflow: hidden;
+transition: max-height 0.35s ease, padding 0.35s ease;
+}
+.faq-item.open .faq-answer { max-height: 500px; }
+.faq-answer-inner {
+padding: 0 20px 16px;
+font-size: 14px; color: var(--text-light);
+line-height: 1.7;
+}
+
+/* Contact Bar */
+.contact-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  display: flex; justify-content: center; gap: 8px;
+  padding: 8px 16px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  z-index: 9999;
+}
+/* Hide contact bar by default, show only on home view */
+.contact-bar.hidden-bar { display: none !important; }
+.contact-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  transition: var(--transition);
+  position: relative;
+}
+.contact-btn:active { background: var(--bg-secondary); }
+.contact-icon {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+.contact-icon svg { width: 20px; height: 20px; }
+.contact-whatsapp .contact-icon { background: #25D366; }
+.contact-phone .contact-icon { background: var(--primary); }
+.contact-email .contact-icon { background: #6366F1; }
+.contact-label { display: none; }
+
+/* ===== POSTS SECTIONS ===== */
+.post-section { margin-top: 8px; }
+.post-section-header {
+display: flex; align-items: center; gap: 12px;
+padding: 28px 20px 14px;
+}
+.post-section-icon {
+width: 42px;
+height: 42px;
+background: var(--primary);
+border-radius: 12px;
+display: flex; align-items: center; justify-content: center;
+color: #fff;
+flex-shrink: 0;
+box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.post-section-icon svg { width: 20px; height: 20px; }
+.post-section-header h2 {
+font-size: 17px; font-weight: 700; color: var(--text);
+letter-spacing: -0.3px;
+}
+
+.post-scroll {
+display: flex; gap: 12px;
+padding: 0 16px 4px;
+overflow-x: auto;
+scroll-snap-type: x mandatory;
+-webkit-overflow-scrolling: touch;
+scrollbar-width: none;
+}
+.post-scroll::-webkit-scrollbar { display: none; }
+
+.post-card {
+min-width: 280px; max-width: 300px;
+background: var(--bg-card);
+border-radius: var(--radius);
+overflow: hidden;
+box-shadow: var(--shadow);
+scroll-snap-align: start;
+flex-shrink: 0;
+transition: var(--transition);
+}
+.post-card:active { transform: scale(0.98); }
+.post-card-img {
+width: 100%; height: 180px;
+object-fit: cover;
+background: var(--bg-secondary);
+}
+.post-card-body { padding: 16px; }
+.post-card-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
+.post-card-subtitle { font-size: 13px; color: var(--text-light); margin-bottom: 12px; line-height: 1.5; }
+.post-card-btn {
+display: inline-flex; align-items: center; gap: 6px;
+background: var(--primary); color: #fff;
+padding: 10px 20px; border-radius: 8px;
+font-size: 14px; font-weight: 500;
+transition: var(--transition);
+}
+.post-card-btn:hover { background: var(--primary-light); }
+.post-card-btn::after { content: none; }
+
+/* Post Detail */
+.post-detail-hero {
+width: 100%; height: 280px;
+object-fit: cover;
+}
+.post-detail-meta {
+display: flex; align-items: center; gap: 10px;
+padding: 16px 20px 0;
+}
+.post-detail-section-badge {
+display: inline-flex; align-items: center; gap: 6px;
+padding: 6px 14px;
+background: var(--primary); color: #fff;
+border-radius: 20px;
+font-size: 12px; font-weight: 600;
+}
+.post-detail-content {
+padding: 16px 20px;
+line-height: 1.8;
+font-size: 15px;
+}
+.post-detail-content h1, .post-detail-content h2, .post-detail-content h3 {
+color: var(--primary);
+margin: 24px 0 12px;
+}
+.post-detail-content h1 { font-size: 24px; }
+.post-detail-content h2 { font-size: 20px; }
+.post-detail-content h3 { font-size: 17px; }
+.post-detail-content p { margin-bottom: 16px; }
+.post-detail-content ul, .post-detail-content ol { padding-left: 24px; margin-bottom: 16px; }
+.post-detail-content li { margin-bottom: 8px; }
+.post-detail-content img {
+width: 100%;
+border-radius: var(--radius-sm);
+margin: 16px 0;
+box-shadow: var(--shadow);
+}
+.post-detail-cta {
+padding: 20px;
+}
+.post-detail-cta a {
+display: flex; align-items: center; justify-content: center; gap: 8px;
+background: var(--accent); color: #fff;
+padding: 16px 32px; border-radius: 12px;
+font-size: 16px; font-weight: 600;
+transition: var(--transition);
+width: 100%;
+}
+.post-detail-cta a:hover { background: var(--accent-hover); }
+
+/* ===== DETAIL VIEW ===== */
+#detail-view { background: var(--bg); }
+.detail-header {
+position: sticky; top: 0; z-index: 10;
+background: var(--bg-card);
+border-bottom: 1px solid var(--border);
+padding: 12px 16px;
+display: flex; align-items: center; gap: 12px;
+}
+.back-btn {
+width: 40px; height: 40px;
+border-radius: 12px;
+display: flex; align-items: center; justify-content: center;
+background: var(--bg-secondary);
+transition: var(--transition);
+color: var(--text);
+}
+.back-btn svg { width: 20px; height: 20px; }
+.back-btn:active { background: var(--border); }
+.detail-title { font-size: 18px; font-weight: 600; flex: 1; }
+.detail-body {
+padding: 20px 16px;
+line-height: 1.8;
+font-size: 15px;
+}
+.detail-body h1, .detail-body h2, .detail-body h3 {
+color: var(--primary);
+margin: 24px 0 12px;
+}
+.detail-body h1 { font-size: 24px; }
+.detail-body h2 { font-size: 20px; }
+.detail-body h3 { font-size: 17px; }
+.detail-body p { margin-bottom: 16px; }
+.detail-body ul, .detail-body ol { padding-left: 24px; margin-bottom: 16px; }
+.detail-body li { margin-bottom: 8px; }
+.detail-body img {
+width: 100%;
+border-radius: var(--radius-sm);
+margin: 16px 0;
+box-shadow: var(--shadow);
+}
+.detail-body a { color: var(--primary); text-decoration: underline; }
+.detail-stage-badge {
+display: inline-flex; align-items: center; gap: 6px;
+padding: 6px 14px;
+border-radius: 20px;
+font-size: 12px; font-weight: 600;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+margin-bottom: 20px;
+}
+.detail-stage-badge.pre-arrival { background: #DBEAFE; color: #1D4ED8; }
+.detail-stage-badge.in-stay { background: #D1FAE5; color: #065F46; }
+.detail-stage-badge.pre-checkout { background: #FEF3C7; color: #92400E; }
+
+/* ===== ERROR ===== */
+.error-container {
+display: flex; flex-direction: column;
+align-items: center; justify-content: center;
+min-height: 80vh; padding: 40px 24px;
+text-align: center;
+}
+.error-icon { margin-bottom: 16px; color: var(--primary); }
+.error-icon svg { width: 64px; height: 64px; }
+.error-container h2 { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.error-container p { font-size: 15px; color: var(--text-light); margin-bottom: 24px; }
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp {
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fadeInUp 0.5s ease forwards; }
+.delay-1 { animation-delay: 0.1s; opacity: 0; }
+.delay-2 { animation-delay: 0.2s; opacity: 0; }
+.delay-3 { animation-delay: 0.3s; opacity: 0; }
+.delay-4 { animation-delay: 0.4s; opacity: 0; }
+
+/* ===== TOAST ===== */
+.toast {
+position: fixed; bottom: 100px;
+left: 50%; transform: translateX(-50%);
+background: var(--primary); color: #fff;
+padding: 12px 24px; border-radius: 12px;
+font-size: 14px; font-weight: 500;
+box-shadow: var(--shadow-lg);
+z-index: 100;
+opacity: 0; transition: opacity 0.3s ease;
+pointer-events: none;
+}
+.toast.show { opacity: 1; }
+
+/* ===== RESPONSIVE ===== */
+@media (min-width: 600px) {
+.module-grid { grid-template-columns: repeat(3, 1fr); }
+.welcome-hotel-name { font-size: 40px; }
+}
+@media (min-width: 768px) {
+.module-grid { grid-template-columns: repeat(4, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div id="loading-screen">
+<div class="loader-logo" id="loader-logo"></div>
+<div class="loader-spinner"></div>
+<div class="loader-text" id="loading-text">Cargando...</div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast" id="toast"></div>
+
+<!-- View: Welcome -->
+<div class="view active" id="welcome-view">
+<div class="welcome-bg" id="welcome-bg" style="background-image:url('')"></div>
+<div class="welcome-content">
+<div class="welcome-logo animate-in delay-1">
+<span class="logo-placeholder" id="welcome-logo-text">H</span>
+<img id="welcome-logo-img" class="hidden" src="" alt="Logo">
+</div>
+<h1 class="welcome-hotel-name animate-in delay-2" id="welcome-hotel-name">Hotel</h1>
+<p class="welcome-subtitle animate-in delay-3" id="welcome-subtitle">Bienvenido/a a tu experiencia de hospedaje</p>
+<button class="btn-primary animate-in delay-4" id="btn-start" onclick="goToOnboarding()">
+Comenzar
+</button>
+</div>
+</div>
+
+<!-- View: Onboarding -->
+<div class="view" id="onboarding-view">
+<div class="onboard-header">
+<h1>Información del huésped</h1>
+<p>Cuéntanos un poco sobre ti para personalizar tu estancia</p>
+</div>
+<div class="onboard-body">
+<form id="onboard-form" onsubmit="submitOnboarding(event)">
+<div class="form-group">
+<label class="form-label">Nombre completo *</label>
+<input type="text" class="form-input" id="field-name" required placeholder="Ej: María García" autocomplete="name">
+</div>
+<div class="form-row">
+<div class="form-group">
+<label class="form-label">WhatsApp</label>
+<input type="tel" class="form-input" id="field-whatsapp" placeholder="+52 123 456 7890" autocomplete="tel">
+</div>
+<div class="form-group">
+<label class="form-label">Email</label>
+<input type="email" class="form-input" id="field-email" placeholder="correo@ejemplo.com" autocomplete="email">
+</div>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label class="form-label">Check-in</label>
+<input type="date" class="form-input" id="field-checkin">
+</div>
+<div class="form-group">
+<label class="form-label">Check-out</label>
+<input type="date" class="form-input" id="field-checkout">
+</div>
+</div>
+<div class="form-group">
+<label class="form-label">Idioma</label>
+<select class="form-input" id="field-language">
+<option value="es">Español</option>
+<option value="en">English</option>
+</select>
+</div>
+<div class="consent-group">
+<input type="checkbox" id="field-consent">
+<label for="field-consent">
+Acepto los términos y condiciones y la política de privacidad del hotel para recibir información sobre mi estancia.
+</label>
+</div>
+</form>
+</div>
+<div class="onboard-footer">
+<button class="btn-primary" onclick="submitOnboarding(event)">
+Continuar
+</button>
+</div>
+</div>
+
+<!-- View: Home -->
+<div class="view" id="home-view">
+<div class="home-header" id="home-header">
+  <div class="home-brand">
+    <div class="home-brand-logo" id="home-brand-logo">
+      <span class="logo-sm" id="home-logo-text">H</span>
+      <img id="home-logo-img" class="hidden" src="" alt="Logo">
+    </div>
+    <span class="home-brand-name" id="home-hotel-name"></span>
+  </div>
+  <button class="home-lang-btn" id="lang-toggle" onclick="toggleLanguage()">EN</button>
+</div>
+<div class="home-welcome" id="home-welcome">
+  <div class="home-welcome-accent"></div>
+  <h1 id="greeting-text">¡Hola!</h1>
+  <p id="greeting-sub">¿En qué podemos ayudarte hoy?</p>
+</div>
+
+<div class="home-content">
+<!-- PWA Install Banner -->
+<div class="pwa-banner hidden" id="pwa-banner">
+<div class="pwa-banner-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="32" height="32"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+<div class="pwa-banner-text">
+<h3 id="pwa-banner-title">Agregar a pantalla de inicio</h3>
+<p id="pwa-banner-sub">Accede más rápido desde tu pantalla</p>
+</div>
+<button class="pwa-banner-close" onclick="dismissPwaBanner()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+</div>
+
+<!-- Modules -->
+<div class="section-title" id="section-modules-title">Servicios</div>
+<div class="module-grid" id="module-grid"></div>
+
+<!-- Promos -->
+<div class="section-title hidden" id="section-promos-title">Promociones</div>
+<div class="promo-scroll hidden" id="promo-scroll"></div>
+
+<!-- Posts: Restaurants -->
+<div class="post-section hidden" id="post-section-restaurant">
+<div class="post-section-header">
+<div class="post-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg></div>
+<h2 id="post-title-restaurant">Restaurantes y Servicios</h2>
+</div>
+<div class="post-scroll" id="post-scroll-restaurant"></div>
+</div>
+
+<!-- Posts: Tours -->
+<div class="post-section hidden" id="post-section-tour">
+<div class="post-section-header">
+<div class="post-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+<h2 id="post-title-tour">Tours y Experiencias</h2>
+</div>
+<div class="post-scroll" id="post-scroll-tour"></div>
+</div>
+
+<!-- Posts: Guide -->
+<div class="post-section hidden" id="post-section-guide">
+<div class="post-section-header">
+<div class="post-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+<h2 id="post-title-guide">Guía Turística</h2>
+</div>
+<div class="post-scroll" id="post-scroll-guide"></div>
+</div>
+
+<!-- FAQ -->
+<div class="section-title" id="section-faq-title">Preguntas Frecuentes</div>
+<div class="faq-list" id="faq-list"></div>
+</div>
+</div>
+
+<!-- View: Detail -->
+<div class="view" id="detail-view">
+<div class="detail-header">
+<button class="back-btn" onclick="goHome()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>
+<div class="detail-title" id="detail-title"></div>
+</div>
+<div class="detail-body" id="detail-body"></div>
+</div>
+
+<!-- View: Post Detail -->
+<div class="view" id="post-detail-view">
+<div class="detail-header">
+<button class="back-btn" onclick="goHome()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>
+<div class="detail-title" id="post-detail-title"></div>
+</div>
+<div id="post-detail-hero"></div>
+<div class="post-detail-meta" id="post-detail-meta"></div>
+<div class="post-detail-content" id="post-detail-content"></div>
+<div class="post-detail-cta" id="post-detail-cta"></div>
+</div>
+
+<script>
+/* ================================================================
+HostelFlow Guest PWA - Complete Application
+=============================================================== */
+
+// ---------- State ----------
+const state = {
+slug: '',
+hotel: null,
+modules: [],
+faqs: [],
+promos: [],
+posts: [],
+guestLeadId: null,
+guestName: '',
+currentLang: 'es',
+deferredPrompt: null,
+pwaDismissed: false,
+};
+
+// ---------- i18n ----------
+const i18n = {
+es: {
+welcomeSubtitle: 'Bienvenido/a a tu experiencia de hospedaje',
+onboardTitle: 'Información del huésped',
+onboardSubtitle: 'Cuéntanos un poco sobre ti para personalizar tu estancia',
+btnStart: 'Comenzar',
+btnContinue: 'Continuar',
+labelName: 'Nombre completo *',
+labelWhatsapp: 'WhatsApp',
+labelEmail: 'Email',
+labelCheckin: 'Check-in',
+labelCheckout: 'Check-out',
+labelLanguage: 'Idioma',
+consentLabel: 'Acepto los términos y condiciones y la política de privacidad del hotel para recibir información sobre mi estancia.',
+greetingSub: '¿En qué podemos ayudarte hoy?',
+sectionModules: 'Servicios',
+sectionPromos: 'Promociones',
+sectionFaq: 'Preguntas Frecuentes',
+contactWhatsApp: 'WhatsApp',
+contactPhone: 'Teléfono',
+contactEmail: 'Email',
+pwaTitle: 'Agregar a pantalla de inicio',
+pwaSub: 'Accede más rápido desde tu pantalla',
+placeholderName: 'Ej: María García',
+placeholderWhatsapp: '+52 123 456 7890',
+placeholderEmail: 'correo@ejemplo.com',
+loading: 'Cargando...',
+errorTitle: 'Oops, algo salió mal',
+errorMsg: 'No pudimos cargar la información del hotel.',
+langToggle: 'EN',
+},
+en: {
+welcomeSubtitle: 'Welcome to your stay experience',
+onboardTitle: 'Guest Information',
+onboardSubtitle: 'Tell us a bit about yourself to personalize your stay',
+btnStart: 'Get Started',
+btnContinue: 'Continue',
+labelName: 'Full name *',
+labelWhatsapp: 'WhatsApp',
+labelEmail: 'Email',
+labelCheckin: 'Check-in',
+labelCheckout: 'Check-out',
+labelLanguage: 'Language',
+consentLabel: 'I accept the terms and conditions and the hotel\'s privacy policy to receive information about my stay.',
+greetingSub: 'How can we help you today?',
+sectionModules: 'Services',
+sectionPromos: 'Promotions',
+sectionFaq: 'Frequently Asked Questions',
+contactWhatsApp: 'WhatsApp',
+contactPhone: 'Phone',
+contactEmail: 'Email',
+pwaTitle: 'Add to Home Screen',
+pwaSub: 'Access faster from your home screen',
+placeholderName: 'e.g. John Smith',
+placeholderWhatsapp: '+1 555 123 4567',
+placeholderEmail: 'email@example.com',
+loading: 'Loading...',
+errorTitle: 'Oops, something went wrong',
+errorMsg: 'We couldn\'t load the hotel information.',
+langToggle: 'ES',
+}
+};
+
+function t(key) { return (i18n[state.currentLang] || i18n.es)[key] || key; }
+
+// ---------- Init ----------
+document.addEventListener('DOMContentLoaded', async () => {
+// Extract slug
+const parts = window.location.pathname.split('/g/');
+state.slug = (parts[1] || '').split('/')[0].split('?')[0];
+
+if (!state.slug) {
+showError();
+return;
+}
+
+// Register service worker
+registerSW();
+
+// Set default lang
+state.currentLang = localStorage.getItem(`hf_lang_${state.slug}`) || 'es';
+
+// Check session
+state.guestLeadId = sessionStorage.getItem(`hf_lead_${state.slug}`);
+state.guestName = sessionStorage.getItem(`hf_name_${state.slug}`);
+
+// Load hotel data
+await loadHotelData();
+
+// PWA install listener
+window.addEventListener('beforeinstallprompt', (e) => {
+e.preventDefault();
+state.deferredPrompt = e;
+if (!state.pwaDismissed) {
+document.getElementById('pwa-banner').classList.remove('hidden');
+}
+});
+
+// If guest already onboarded, go to home
+if (state.guestLeadId && state.guestName) {
+showView('home-view');
+renderHome();
+logEvent('page_view');
+} else {
+showView('welcome-view');
+renderWelcome();
+}
+
+// Remove loading screen
+setTimeout(() => {
+const ls = document.getElementById('loading-screen');
+ls.classList.add('fade-out');
+setTimeout(() => ls.remove(), 600);
+}, 300);
+});
+
+// ---------- Service Worker ----------
+function registerSW() {
+if ('serviceWorker' in navigator) {
+navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+}
+
+// ---------- API ----------
+async function apiFetch(path, options = {}) {
+try {
+const resp = await fetch(path, {
+headers: { 'Content-Type': 'application/json', ...options.headers },
+...options,
+});
+if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+return await resp.json();
+} catch (err) {
+console.error('API Error:', err);
+return null;
+}
+}
+
+async function loadHotelData() {
+const data = await apiFetch(`/api/guest/${state.slug}`);
+if (!data) { showError(); return; }
+state.hotel = data.hotel || data;
+state.modules = data.modules || [];
+state.faqs = data.faqs || [];
+state.promos = data.promos || [];
+state.posts = data.posts || [];
+if (state.hotel.primary_color) {
+document.documentElement.style.setProperty('--primary', state.hotel.primary_color);
+}
+if (state.hotel.accent_color) {
+document.documentElement.style.setProperty('--accent', state.hotel.accent_color);
+}
+
+// Apply theme preset
+if (state.hotel.theme && themes[state.hotel.theme]) {
+const t = themes[state.hotel.theme];
+document.documentElement.style.setProperty('--primary', t.primary);
+document.documentElement.style.setProperty('--primary-light', t.secondary);
+document.documentElement.style.setProperty('--accent', t.accent);
+document.documentElement.style.setProperty('--bg', t.bg);
+document.documentElement.style.setProperty('--bg-secondary', t.bgSec);
+document.documentElement.style.setProperty('--text', t.text);
+}
+
+// Set loader logo
+const h = state.hotel || {};
+const loaderLogo = document.getElementById('loader-logo');
+if (loaderLogo) {
+if (h.logo_url) {
+loaderLogo.innerHTML = `<img src="${h.logo_url}" alt="Logo">`;
+} else {
+loaderLogo.innerHTML = `<span class="loader-initial">${(h.nombre || 'H').charAt(0)}</span>`;
+}
+}
+
+// Set page title
+document.title = h.name || 'HostelFlow';
+
+// Update manifest theme_color
+const manifestThemeColor = h.primary_color || (themes[h.theme] && themes[h.theme].primary) || '#1E3A5F';
+const metaTheme = document.querySelector('meta[name="theme-color"]');
+if (metaTheme) metaTheme.content = manifestThemeColor;
+
+// Check for popups
+if (data.popups && data.popups.length > 0) {
+const activePopup = data.popups.find(p => p.is_active);
+if (activePopup) {
+if (activePopup.trigger_type === 'after_seconds') {
+setTimeout(() => showPopup(activePopup), (activePopup.trigger_seconds || 3) * 1000);
+} else {
+setTimeout(() => showPopup(activePopup), 1500);
+}
+}
+}
+
+// Inject custom CSS
+if (h.custom_css) {
+const style = document.createElement('style');
+style.textContent = h.custom_css;
+document.head.appendChild(style);
+}
+
+// Inject custom JS
+if (h.custom_js) {
+const script = document.createElement('script');
+script.textContent = h.custom_js;
+document.body.appendChild(script);
+}
+}
+
+// ---------- Navigation ----------
+function showView(viewId) {
+document.querySelectorAll('.view').forEach(v => {
+v.classList.remove('active', 'slide-out');
+});
+const target = document.getElementById(viewId);
+target.classList.add('active');
+window.scrollTo(0, 0);
+updateContactBar();
+}
+
+function goToOnboarding() {
+showView('onboarding-view');
+logEvent('page_view');
+}
+
+function goHome() {
+showView('home-view');
+logEvent('page_view');
+}
+
+function showModuleDetail(moduleId) {
+const mod = state.modules.find(m => m.id == moduleId);
+if (!mod) return;
+showView('detail-view');
+document.getElementById('detail-title').textContent = mod.title || '';
+const body = document.getElementById('detail-body');
+let html = '';
+if (mod.audience_stage && mod.audience_stage !== 'all') {
+const stageClass = mod.audience_stage.replace(/\s+/g, '-');
+const stageLabel = { 'pre-arrival': 'Pre-llegada', 'in-stay': 'Durante estancia', 'pre-checkout': 'Pre-checkout' };
+html += `<div class="detail-stage-badge ${stageClass}">${stageLabel[mod.audience_stage] || mod.audience_stage}</div>`;
+}
+if (mod.image_url) {
+html += `<img src="${escapeHtml(mod.image_url)}" alt="${escapeHtml(mod.title || '')}">`;
+}
+if (mod.subtitle) {
+html += `<p style="color:var(--text-light);margin-bottom:20px;font-size:15px;">${escapeHtml(mod.subtitle)}</p>`;
+}
+html += mod.content_html || '<p>Sin contenido disponible.</p>';
+body.innerHTML = html;
+logEvent('module_view', { module_id: moduleId, module_title: mod.title });
+}
+
+function showPostDetail(postId) {
+const post = state.posts.find(p => p.id == postId);
+if (!post) return;
+showView('post-detail-view');
+document.getElementById('post-detail-title').textContent = post.title || '';
+
+// Hero image
+const heroEl = document.getElementById('post-detail-hero');
+if (post.image_url) {
+heroEl.innerHTML = `<img class="post-detail-hero" src="${escapeHtml(post.image_url)}" alt="${escapeHtml(post.title || '')}">`;
+} else {
+heroEl.innerHTML = `<div class="post-detail-hero" style="background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-size:72px">${post.icon || '📄'}</div>`;
+}
+
+// Meta (section badge)
+const sectionLabels = { restaurant: '🍽️ Restaurante', tour: '🗺️ Tour', guide: '📍 Guía' };
+document.getElementById('post-detail-meta').innerHTML = `
+<div class="post-detail-section-badge">${sectionLabels[post.section] || post.section}</div>
+`;
+
+// Content
+document.getElementById('post-detail-content').innerHTML = post.content_html || '<p>Sin contenido disponible.</p>';
+
+// CTA button
+const ctaEl = document.getElementById('post-detail-cta');
+if (post.button_text && post.button_url) {
+ctaEl.innerHTML = `<a href="${escapeHtml(post.button_url)}" target="_blank">${escapeHtml(post.button_text)}</a>`;
+ctaEl.classList.remove('hidden');
+} else {
+ctaEl.innerHTML = '';
+ctaEl.classList.add('hidden');
+}
+
+logEvent('post_view', { post_id: postId, post_title: post.title });
+}
+
+// ---------- SVG Icon Library ----------
+const S = {
+wifi:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0114.08 0"/><path d="M1.42 9a16 16 0 0121.16 0"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>',
+clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+'alert-circle':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+'map-pin':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+utensils:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>',
+calendar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+'log-out':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
+services:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>',
+custom:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+dining:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>',
+events:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+rules:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+location:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+checkout:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
+phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>',
+whatsapp:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>',
+email:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+chevronDown:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
+arrowRight:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
+arrowLeft:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
+x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+hotel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg>',
+};
+function svgIcon(name, cls) { return `<span class="svg-icon${cls ? ' ' + cls : ''}">${S[name] || S.custom}</span>`; }
+
+// ---------- Theme Presets ----------
+const themes = {
+  ocean: {primary:'#1E3A5F',secondary:'#4A90D9',accent:'#F0B429',bg:'#FFFFFF',bgSec:'#F9FAFB',text:'#3A3A3A'},
+  sunset: {primary:'#C2410C',secondary:'#F97316',accent:'#FBBF24',bg:'#FFFBEB',bgSec:'#FEF3C7',text:'#78350F'},
+  forest: {primary:'#14532D',secondary:'#16A34A',accent:'#A3E635',bg:'#F0FDF4',bgSec:'#DCFCE7',text:'#1A2E1A'},
+  luxury: {primary:'#1A1A2E',secondary:'#6B7280',accent:'#D4AF37',bg:'#FAFAFA',bgSec:'#F5F5F5',text:'#1A1A2E'},
+  tropical: {primary:'#0E7490',secondary:'#06B6D4',accent:'#FB923C',bg:'#ECFEFF',bgSec:'#CFFAFE',text:'#164E63'},
+  minimal: {primary:'#374151',secondary:'#9CA3AF',accent:'#6366F1',bg:'#FFFFFF',bgSec:'#F3F4F6',text:'#111827'},
+  rose: {primary:'#9D174D',secondary:'#EC4899',accent:'#F472B6',bg:'#FDF2F8',bgSec:'#FCE7F3',text:'#831843'},
+  royal: {primary:'#4C1D95',secondary:'#7C3AED',accent:'#A78BFA',bg:'#FAF5FF',bgSec:'#F3E8FF',text:'#2E1065'}
+};
+
+// ---------- Render Welcome ----------
+function renderWelcome() {
+const h = state.hotel || {};
+document.getElementById('welcome-hotel-name').textContent = h.nombre || h.name || 'Hotel';
+document.getElementById('welcome-subtitle').textContent = t('welcomeSubtitle');
+document.getElementById('btn-start').textContent = t('btnStart');
+
+if (h.cover_url) {
+document.getElementById('welcome-bg').style.backgroundImage = `url('${h.cover_url}')`;
+}
+if (h.logo_url) {
+document.getElementById('welcome-logo-img').src = h.logo_url;
+document.getElementById('welcome-logo-img').classList.remove('hidden');
+document.getElementById('welcome-logo-text').classList.add('hidden');
+}
+if (h.nombre) {
+document.getElementById('welcome-logo-text').textContent = h.nombre.charAt(0);
+}
+}
+
+// ---------- Render Home ----------
+function renderHome() {
+const h = state.hotel || {};
+const name = (state.guestName || '').split(' ')[0] || 'Guest';
+
+// Apply theme
+if (h.primary_color) document.documentElement.style.setProperty('--primary', h.primary_color);
+if (h.accent_color) document.documentElement.style.setProperty('--accent', h.accent_color);
+
+// Brand
+if (h.logo_url) {
+document.getElementById('home-logo-img').src = h.logo_url;
+document.getElementById('home-logo-img').classList.remove('hidden');
+document.getElementById('home-logo-text').classList.add('hidden');
+} else {
+document.getElementById('home-logo-text').textContent = (h.nombre || 'H').charAt(0);
+}
+document.getElementById('home-hotel-name').textContent = h.nombre || h.name || '';
+
+// Greeting
+const greeting = state.currentLang === 'es' ? `¡Hola, ${name}!` : `Hello, ${name}!`;
+document.getElementById('greeting-text').textContent = greeting;
+document.getElementById('greeting-sub').textContent = t('greetingSub');
+
+// Language toggle
+document.getElementById('lang-toggle').textContent = t('langToggle');
+
+// Sections
+document.getElementById('section-modules-title').textContent = t('sectionModules');
+document.getElementById('section-faq-title').textContent = t('sectionFaq');
+document.getElementById('section-promos-title').textContent = t('sectionPromos');
+
+// PWA Banner
+document.getElementById('pwa-banner-title').textContent = t('pwaTitle');
+document.getElementById('pwa-banner-sub').textContent = t('pwaSub');
+
+// Modules
+const grid = document.getElementById('module-grid');
+grid.innerHTML = state.modules.map((m, i) => {
+const stageClass = (m.audience_stage || '').replace(/\s+/g, '-');
+const stageLabels = { 'pre-arrival': 'Pre-llegada', 'in-stay': 'Estancia', 'pre-checkout': 'Checkout' };
+return `
+<div class="module-card animate-in delay-${(i % 4) + 1}" onclick="showModuleDetail('${m.id}')">
+${m.audience_stage && m.audience_stage !== 'all' ? `<span class="module-stage stage-${stageClass}">${stageLabels[m.audience_stage] || m.audience_stage}</span>` : ''}
+<div class="module-icon" style="color:var(--primary)">${svgIcon(m.icon)}</div>
+<h3>${escapeHtml(m.title || '')}</h3>
+<p>${escapeHtml(m.subtitle || m.description || '')}</p>
+</div>`;
+}).join('');
+
+// Promos
+const promoSection = document.getElementById('section-promos-title');
+const promoScroll = document.getElementById('promo-scroll');
+if (state.promos.length > 0) {
+promoSection.classList.remove('hidden');
+promoScroll.classList.remove('hidden');
+promoScroll.innerHTML = state.promos.map(p => `
+<div class="promo-card">
+${p.image_url ? `<img class="promo-img" src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.title || '')}">` : `<div class="promo-img" style="background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-size:36px">🎁</div>`}
+<div class="promo-body">
+<h3>${escapeHtml(p.title || '')}</h3>
+<p>${escapeHtml(p.description || '')}</p>
+${p.price_text ? `<div class="promo-price">${escapeHtml(p.price_text)}</div>` : ''}
+${p.cta_link ? `<a class="btn-cta" href="${escapeHtml(p.cta_link)}" target="_blank" onclick="logEvent('promo_click')">${p.cta_label || (state.currentLang === 'es' ? 'Ver más' : 'Learn more')}</a>` : ''}
+</div>
+</div>
+`).join('');
+} else {
+promoSection.classList.add('hidden');
+promoScroll.classList.add('hidden');
+}
+
+// Posts (Restaurants, Tours, Guide)
+const sectionNames = {
+restaurant: state.currentLang === 'es' ? 'Restaurantes y Servicios' : 'Restaurants & Services',
+tour: state.currentLang === 'es' ? 'Tours y Experiencias' : 'Tours & Experiences',
+guide: state.currentLang === 'es' ? 'Guía Turística' : 'Tourist Guide'
+};
+['restaurant', 'tour', 'guide'].forEach(sec => {
+const section = document.getElementById(`post-section-${sec}`);
+const scroll = document.getElementById(`post-scroll-${sec}`);
+const title = document.getElementById(`post-title-${sec}`);
+const sectionPosts = state.posts.filter(p => p.section === sec);
+if (sectionPosts.length) {
+section.classList.remove('hidden');
+title.textContent = sectionNames[sec];
+scroll.innerHTML = sectionPosts.map(p => `
+<div class="post-card" onclick="showPostDetail(${p.id})">
+${p.image_url ? `<img class="post-card-img" src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.title || '')}">` : `<div class="post-card-img" style="background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-size:48px">${p.icon || '📄'}</div>`}
+<div class="post-card-body">
+<div class="post-card-title">${escapeHtml(p.title || '')}</div>
+<div class="post-card-subtitle">${escapeHtml(p.subtitle || '')}</div>
+${p.button_text ? `<div class="post-card-btn">${escapeHtml(p.button_text)}</div>` : ''}
+</div>
+</div>
+`).join('');
+} else {
+section.classList.add('hidden');
+}
+});
+
+// FAQs
+const faqList = document.getElementById('faq-list');
+if (state.faqs.length > 0) {
+faqList.innerHTML = state.faqs.map(f => `
+<div class="faq-item">
+<button class="faq-question" onclick="toggleFaq(this)">
+<span>${escapeHtml(f.question || f.q || '')}</span>
+<span class="faq-arrow">▼</span>
+</button>
+<div class="faq-answer">
+<div class="faq-answer-inner">${escapeHtml(f.answer || f.a || '')}</div>
+</div>
+</div>
+`).join('');
+} else {
+faqList.innerHTML = `<div style="text-align:center;padding:24px;color:var(--text-light);font-size:14px">${state.currentLang === 'es' ? 'No hay preguntas frecuentes disponibles.' : 'No FAQ available.'}</div>`;
+}
+
+// Contact
+if (h.whatsapp_number) {
+const wa = h.whatsapp_number.replace(/[^0-9+]/g, '');
+const waBtn = document.getElementById('contact-whatsapp');
+waBtn.href = `https://wa.me/${wa}`;
+waBtn.querySelector('.contact-label').textContent = t('contactWhatsApp');
+}
+if (h.phone) {
+const phoneBtn = document.getElementById('contact-phone');
+phoneBtn.href = `tel:${h.phone}`;
+phoneBtn.querySelector('.contact-label').textContent = t('contactPhone');
+}
+if (h.email) {
+const emailBtn = document.getElementById('contact-email');
+emailBtn.href = `mailto:${h.email}`;
+emailBtn.querySelector('.contact-label').textContent = t('contactEmail');
+}
+
+// Forms
+document.getElementById('field-name').placeholder = t('placeholderName');
+document.getElementById('field-whatsapp').placeholder = t('placeholderWhatsapp');
+document.getElementById('field-email').placeholder = t('placeholderEmail');
+}
+
+// ---------- Onboarding ----------
+async function submitOnboarding(e) {
+e.preventDefault();
+if (e.stopPropagation) e.stopPropagation();
+const name = document.getElementById('field-name').value.trim();
+if (!name) {
+showToast(state.currentLang === 'es' ? 'Por favor ingresa tu nombre' : 'Please enter your name', 'error');
+return;
+}
+if (!document.getElementById('field-consent').checked) {
+showToast(state.currentLang === 'es' ? 'Debes aceptar los términos para continuar' : 'You must accept the terms to continue', 'error');
+return;
+}
+
+const payload = {
+name,
+whatsapp: document.getElementById('field-whatsapp').value.trim(),
+email: document.getElementById('field-email').value.trim(),
+check_in_date: document.getElementById('field-checkin').value || null,
+check_out_date: document.getElementById('field-checkout').value || null,
+language: document.getElementById('field-language').value,
+consent_contact: true,
+source_qr: new URLSearchParams(window.location.search).get('source') || null,
+};
+
+const btn = document.querySelector('.onboard-footer .btn-primary');
+btn.disabled = true;
+btn.textContent = t('loading');
+
+const result = await apiFetch(`/api/guest/${state.slug}/onboarding`, {
+method: 'POST',
+body: JSON.stringify(payload),
+});
+
+if (result && (result.guest_lead_id || result.id)) {
+const leadId = result.guest_lead_id || result.id;
+state.guestLeadId = leadId;
+state.guestName = name;
+state.currentLang = payload.language || 'es';
+sessionStorage.setItem(`hf_lead_${state.slug}`, leadId);
+sessionStorage.setItem(`hf_name_${state.slug}`, name);
+localStorage.setItem(`hf_lang_${state.slug}`, state.currentLang);
+showView('home-view');
+renderHome();
+logEvent('onboarding_complete');
+showToast(state.currentLang === 'es' ? `¡Hola, ${name.split(' ')[0]}!` : `Hello, ${name.split(' ')[0]}!`);
+} else {
+showToast(state.currentLang === 'es' ? 'Error al registrar. Intenta de nuevo.' : 'Registration error. Please try again.');
+}
+
+btn.disabled = false;
+btn.textContent = t('btnContinue');
+}
+
+// ---------- Events ----------
+async function logEvent(eventType, extra = {}) {
+if (!state.hotel) return;
+const payload = {
+hotel_id: state.hotel.id,
+guest_lead_id: state.guestLeadId,
+event_type: eventType,
+page_view: window.location.href,
+timestamp: new Date().toISOString(),
+...extra,
+};
+await apiFetch('/api/guest/events', {
+method: 'POST',
+body: JSON.stringify(payload),
+}).catch(() => {});
+}
+
+// ---------- FAQ ----------
+function toggleFaq(btn) {
+const item = btn.closest('.faq-item');
+const wasOpen = item.classList.contains('open');
+// Close all
+document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+if (!wasOpen) item.classList.add('open');
+}
+
+// ---------- Language ----------
+function toggleLanguage() {
+state.currentLang = state.currentLang === 'es' ? 'en' : 'es';
+localStorage.setItem(`hf_lang_${state.slug}`, state.currentLang);
+renderHome();
+logEvent('language_change', { language: state.currentLang });
+}
+
+// ---------- PWA ----------
+function dismissPwaBanner() {
+document.getElementById('pwa-banner').classList.add('hidden');
+state.pwaDismissed = true;
+}
+
+async function installPwa() {
+if (!state.deferredPrompt) return;
+state.deferredPrompt.prompt();
+const { outcome } = await state.deferredPrompt.userChoice;
+if (outcome === 'accepted') {
+showToast(state.currentLang === 'es' ? '¡App instalada!' : 'App installed!');
+}
+state.deferredPrompt = null;
+document.getElementById('pwa-banner').classList.add('hidden');
+}
+
+// ---------- Utils ----------
+function escapeHtml(str) {
+if (!str) return '';
+const div = document.createElement('div');
+div.textContent = str;
+return div.innerHTML;
+}
+
+function showToast(msg) {
+const toast = document.getElementById('toast');
+toast.textContent = msg;
+toast.classList.add('show');
+setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function showError() {
+document.getElementById('loading-screen').classList.add('fade-out');
+document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+const div = document.createElement('div');
+div.className = 'error-container';
+div.innerHTML = `
+<div class="error-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="64" height="64"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg></div>
+<h2>${t('errorTitle')}</h2>
+<p>${t('errorMsg')}</p>
+<button class="btn-primary" onclick="location.reload()">Reintentar</button>
+`;
+document.body.appendChild(div);
+}
+
+// ---------- Popup ----------
+function showPopup(popup) {
+const overlay = document.getElementById('popup-overlay');
+const content = document.getElementById('popup-content');
+let html = '';
+if (popup.image_url) html += `<img class="popup-img" src="${escapeHtml(popup.image_url)}" alt="">`;
+html += `<div class="popup-body"><h3>${escapeHtml(popup.title)}</h3>`;
+if (popup.message) html += `<p>${escapeHtml(popup.message)}</p>`;
+if (popup.button_text && popup.button_url) html += `<a class="post-card-btn" href="${escapeHtml(popup.button_url)}" target="_blank" style="width:100%;justify-content:center">${escapeHtml(popup.button_text)}</a>`;
+html += '</div>';
+content.innerHTML = html;
+overlay.classList.remove('hidden');
+}
+function closePopup() { document.getElementById('popup-overlay').classList.add('hidden'); }
+
+// Contact Bar visibility - show only on home view
+function updateContactBar() {
+  const bar = document.getElementById('global-contact-bar');
+  if (!bar) return;
+  const homeView = document.getElementById('home-view');
+  const isHome = homeView && homeView.classList.contains('active');
+  bar.classList.toggle('hidden-bar', !isHome);
+}
+
+// Compact header glass morphism on scroll
+window.addEventListener('scroll', function() {
+  const header = document.getElementById('home-header');
+  if (header) {
+    header.classList.toggle('scrolled', window.scrollY > 40);
+  }
+}, { passive: true });
+</script>
+
+<!-- Popup Modal -->
+<div class="popup-overlay hidden" id="popup-overlay" onclick="closePopup()">
+<div class="popup-modal" onclick="event.stopPropagation()">
+<div class="popup-close" onclick="closePopup()">✕</div>
+<div id="popup-content"></div>
+</div>
+</div>
+
+<!-- Contact Bar - outside all views for true fixed positioning -->
+<div class="contact-bar" id="global-contact-bar">
+<a class="contact-btn contact-whatsapp" id="contact-whatsapp" href="#" target="_blank" onclick="logEvent('contact_whatsapp')">
+<span class="contact-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></span>
+<span class="contact-label">WhatsApp</span>
+</a>
+<a class="contact-btn contact-phone" id="contact-phone" href="#" onclick="logEvent('contact_phone')">
+<span class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></span>
+<span class="contact-label">Teléfono</span>
+</a>
+<a class="contact-btn contact-email" id="contact-email" href="#" onclick="logEvent('contact_email')">
+<span class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+<span class="contact-label">Email</span>
+</a>
+</div>
+</body>
+</html>
