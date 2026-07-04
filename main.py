@@ -487,7 +487,7 @@ def seed_data():
 
 @app.on_event("startup")
 def startup():
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine, checkfirst=True)
     seed_data()
 
 
