@@ -3,39 +3,59 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#1E3A5F">
+<meta name="theme-color" content="#F4EFE6">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="description" content="HostelFlow - Tu guía de hotel">
-<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" href="/static/favicon.png">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<link rel="manifest" href="/manifest.json" id="manifest-link">
+<link rel="stylesheet" href="/api/theme/0/css" id="theme-css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
 <title>HostelFlow</title>
 <style>
+/* ═══ 1. BASE + TOKENS (preset base = boutique) ═══ */
 :root {
---primary: #1E3A5F;
---primary-light: #2A4F7A;
---accent: #F0B429;
---accent-hover: #D9A224;
---text: #3A3A3A;
---text-light: #6B7280;
---bg: #FFFFFF;
---bg-secondary: #F9FAFB;
---bg-card: #FFFFFF;
---border: #E5E7EB;
---shadow: 0 4px 24px rgba(0,0,0,0.08);
---shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
---radius: 16px;
---radius-sm: 12px;
---radius-xs: 8px;
---transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
---primary-rgb: 30,58,95;
+--primary: #1F1B16;
+--primary-light: #3A332A;
+--secondary: #C9A961;
+--accent: #C9A961;
+--accent-hover: #D4B978;
+--text: #1F1B16;
+--text-light: #6B6258;
+--bg: #F4EFE6;
+--bg-secondary: #EFE8DB;
+--bg-card: rgba(255,255,255,0.55);
+--border: #E5DCC8;
+--shadow: 0 4px 24px rgba(31,27,22,0.06);
+--shadow-lg: 0 8px 40px rgba(31,27,22,0.1);
+--radius: 20px;
+--radius-sm: 14px;
+--radius-xs: 10px;
+--transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+--primary-rgb: 31,27,22;
+--accent-rgb: 201,169,97;
+--secondary-rgb: 201,169,97;
+--bg-rgb: 244,239,230;
+--font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+--font-serif: 'Playfair Display', Georgia, serif;
+--font-display: var(--font-serif);
 }
+@media (prefers-reduced-motion: reduce) {
+*, *::before, *::after {
+animation-duration: 0.001ms !important;
+animation-iteration-count: 1 !important;
+transition-duration: 0.001ms !important;
+scroll-behavior: auto !important;
+}
+}
+/* ═══ 2. LAYOUT COMÚN ═══ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 body {
-font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+font-family: var(--font-sans);
 background: var(--bg);
 color: var(--text);
 line-height: 1.6;
@@ -51,6 +71,7 @@ a { text-decoration: none; color: inherit; }
 
 /* ===== UTILITIES ===== */
 .hidden { display: none !important; }
+[hidden] { display: none !important; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
 
 /* ===== VIEWS ===== */
@@ -81,31 +102,48 @@ background: var(--primary);
 display: flex; flex-direction: column;
 align-items: center; justify-content: center;
 z-index: 9999;
-transition: opacity 0.6s ease;
+transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1);
 }
 #loading-screen.fade-out { opacity: 0; pointer-events: none; }
+.loader-logo-wrap {
+width: 96px; height: 96px;
+border-radius: 24px;
+background: rgba(255,255,255,0.08);
+display: flex; align-items: center; justify-content: center;
+margin-bottom: 28px;
+backdrop-filter: blur(16px);
+border: 1px solid rgba(255,255,255,0.12);
+overflow: hidden;
+animation: loaderPulse 2s ease-in-out infinite;
+}
+.loader-logo-wrap img{max-width:64px;max-height:64px;object-fit:contain}
+.loader-logo-wrap .loader-initial{font-size:40px;font-weight:700;color:var(--accent);font-family:var(--font-serif)}
 .loader-spinner {
-width: 48px; height: 48px;
-border: 3px solid rgba(255,255,255,0.2);
+width: 32px; height: 32px;
+border: 2px solid rgba(255,255,255,0.1);
 border-top-color: var(--accent);
 border-radius: 50%;
-animation: spin 0.8s linear infinite;
+animation: spin 0.8s cubic-bezier(0.4,0,0.2,1) infinite;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
-.loader-text { color: #fff; margin-top: 20px; font-size: 16px; font-weight: 300; letter-spacing: 0.5px; }
-.loader-logo{width:72px;height:72px;border-radius:16px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;margin-bottom:20px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.2);overflow:hidden}
-.loader-logo img{max-width:56px;max-height:56px;object-fit:contain}
-.loader-logo .loader-initial{font-size:32px;font-weight:700;color:var(--accent)}
+.loader-text { color: rgba(255,255,255,0.7); margin-top: 16px; font-size: 14px; font-weight: 300; letter-spacing: 0.5px; }
+@keyframes loaderPulse {
+0%, 100% { transform: scale(1); opacity: 0.9; }
+50% { transform: scale(1.05); opacity: 1; }
+}
 
-/* Popup Modal */
-.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px}
+/* Popup Modal - Premium */
+.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9000;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .popup-overlay.hidden{display:none}
-.popup-modal{background:#fff;border-radius:var(--radius);max-width:400px;width:100%;overflow:hidden;box-shadow:var(--shadow-lg);position:relative}
-.popup-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;z-index:1}
+.popup-modal{background:rgba(255,255,255,0.9);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:20px;max-width:400px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);position:relative;animation:popupIn 0.4s cubic-bezier(0.16,1,0.3,1)}
+@keyframes popupIn{from{opacity:0;transform:scale(0.92) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.popup-close{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;z-index:1;color:var(--text-light);transition:all 0.2s;border:none}
+.popup-close:hover{background:rgba(0,0,0,.12);color:var(--text)}
 .popup-img{width:100%;height:200px;object-fit:cover}
-.popup-body{padding:20px}
-.popup-body h3{font-size:18px;font-weight:700;margin-bottom:8px}
-.popup-body p{font-size:14px;color:var(--text-light);margin-bottom:16px;line-height:1.5}
+.popup-body{padding:24px}
+.popup-body h3{font-size:20px;font-weight:700;margin-bottom:10px;color:var(--text);font-family:var(--font-serif)}
+.popup-body p{font-size:14px;color:var(--text-light);margin-bottom:20px;line-height:1.6}
+.popup-body .popup-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#D4B978,var(--accent));color:#1F1B16;padding:14px 28px;border-radius:50px;font-size:15px;font-weight:600;border:none;cursor:pointer;transition:all 0.3s;width:100%;box-shadow:0 4px 16px rgba(201,169,97,0.3)}
+.popup-body .popup-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(201,169,97,0.4)}
 
 /* ===== WELCOME SCREEN ===== */
 #welcome-view {
@@ -120,63 +158,99 @@ background-size: cover; background-position: center;
 .welcome-bg::after {
 content: '';
 position: absolute; inset: 0;
-background: linear-gradient(180deg, rgba(30,58,95,0.4) 0%, rgba(30,58,95,0.85) 70%, rgba(30,58,95,1) 100%);
+background: linear-gradient(180deg, rgba(var(--primary-rgb),0.35) 0%, rgba(var(--primary-rgb),0.82) 68%, rgba(var(--primary-rgb),0.97) 100%);
 }
 .welcome-content {
 position: relative; z-index: 2;
 display: flex; flex-direction: column;
 align-items: center; justify-content: flex-end;
 min-height: 100vh; min-height: 100dvh;
-padding: 40px 24px 60px;
+padding: 40px 28px 60px;
 text-align: center;
 }
+.welcome-content > * { animation: welcomeFadeIn 0.8s cubic-bezier(0.16,1,0.3,1) both; }
+.welcome-content .welcome-logo { animation-delay: 0.1s; }
+.welcome-content .welcome-hotel-name { animation-delay: 0.25s; }
+.welcome-content .welcome-subtitle { animation-delay: 0.4s; }
+.welcome-content .btn-primary { animation-delay: 0.55s; }
+.welcome-content .btn-ghost { animation-delay: 0.7s; }
+@keyframes welcomeFadeIn {
+from { opacity: 0; transform: translateY(24px); }
+to { opacity: 1; transform: translateY(0); }
+}
 .welcome-logo {
+display: flex; align-items: center; justify-content: center;
+margin-bottom: 28px;
+}
+.welcome-logo img {
+max-width: 120px;
+max-height: 80px;
+object-fit: contain;
+}
+.welcome-logo .logo-placeholder {
 width: 80px; height: 80px;
-background: rgba(255,255,255,0.15);
+background: rgba(255,255,255,0.12);
 border-radius: 20px;
 display: flex; align-items: center; justify-content: center;
-margin-bottom: 24px; backdrop-filter: blur(10px);
-border: 1px solid rgba(255,255,255,0.2);
+font-size: 34px; font-weight: 700; color: var(--accent); font-family: var(--font-serif);
+backdrop-filter: blur(16px);
+border: 1px solid rgba(255,255,255,0.18);
+box-shadow: 0 8px 32px rgba(0,0,0,0.2);
 }
-.welcome-logo img { max-width: 56px; max-height: 56px; object-fit: contain; }
-.welcome-logo .logo-placeholder { font-size: 32px; font-weight: 700; color: var(--accent); }
 .welcome-hotel-name {
-font-size: 32px; font-weight: 700;
-letter-spacing: -0.5px; margin-bottom: 8px;
-line-height: 1.2;
+font-size: 34px; font-weight: 700;
+letter-spacing: -0.3px; margin-bottom: 10px;
+line-height: 1.15;
+font-family: var(--font-serif);
 }
 .welcome-subtitle {
 font-size: 17px; font-weight: 300;
-opacity: 0.85; margin-bottom: 48px;
-line-height: 1.5;
+opacity: 0.9; margin-bottom: 48px;
+line-height: 1.5; letter-spacing: 0.2px;
+text-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 .btn-primary {
 display: inline-flex; align-items: center; justify-content: center;
 gap: 10px;
-background: var(--accent); color: #fff;
-padding: 16px 48px; border-radius: 50px;
+background: linear-gradient(135deg, #D4B978, var(--accent));
+color: #1F1B16;
+padding: 18px 48px; border-radius: 50px;
 font-size: 17px; font-weight: 600;
-letter-spacing: 0.3px;
-transition: var(--transition);
-box-shadow: 0 4px 20px rgba(240,180,41,0.4);
-min-height: 56px;
+letter-spacing: 0.5px;
+transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+box-shadow: 0 6px 24px rgba(201,169,97,0.3), 0 2px 8px rgba(201,169,97,0.15);
+min-height: 58px;
 width: 100%; max-width: 320px;
+position: relative; overflow: hidden;
 }
-.btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 6px 28px rgba(240,180,41,0.5); }
-.btn-primary:active { transform: translateY(0); }
+.btn-primary::after {
+content: ''; position: absolute; inset: 0;
+background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%);
+opacity: 0; transition: opacity 0.5s;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(201,169,97,0.4); }
+.btn-primary:hover::after { opacity: 1; }
+.btn-primary:active { transform: translateY(0) scale(0.98); }
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
 /* ===== ONBOARDING ===== */
-#onboarding-view { background: var(--bg); }
-.onboard-header {
-padding: 20px 24px;
-text-align: center;
-border-bottom: 1px solid var(--border);
+#onboarding-view { 
+background: linear-gradient(180deg, var(--bg) 0%, var(--bg-secondary) 100%);
+position: relative;
 }
-.onboard-header h1 { font-size: 24px; font-weight: 700; color: var(--primary); }
-.onboard-header p { font-size: 14px; color: var(--text-light); margin-top: 4px; }
+#onboarding-view::before {
+content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+background: linear-gradient(90deg, var(--accent), var(--accent-hover), transparent);
+opacity: .6;
+}
+.onboard-header {
+padding: 24px 24px 16px;
+text-align: center;
+}
+.onboard-header h1 { font-size: 26px; font-weight: 700; color: var(--primary); font-family: var(--font-serif); letter-spacing: -0.5px; }
+.onboard-header p { font-size: 14px; color: var(--text-light); margin-top: 6px; }
 .onboard-body {
-padding: 32px 24px;
+padding: 8px 24px 16px;
 flex: 1;
 overflow-y: auto;
 }
@@ -184,30 +258,30 @@ overflow-y: auto;
 .form-label {
 display: block;
 font-size: 13px; font-weight: 600;
-color: var(--text-light);
+color: var(--text);
 margin-bottom: 6px;
-text-transform: uppercase;
-letter-spacing: 0.5px;
+text-transform: none;
+letter-spacing: 0;
 }
 .form-input {
 width: 100%;
 padding: 14px 16px;
-border: 1.5px solid var(--border);
-border-radius: var(--radius-xs);
+border: 1px solid rgba(var(--accent-rgb),0.2);
+border-radius: 12px;
 font-size: 16px;
 color: var(--text);
-background: var(--bg-secondary);
+background: rgba(255,255,255,0.6);
 transition: var(--transition);
 outline: none;
 -webkit-appearance: none;
 appearance: none;
 }
 .form-input:focus {
-border-color: var(--primary);
-background: #fff;
-box-shadow: 0 0 0 3px rgba(30,58,95,0.1);
+border-color: var(--accent);
+background: rgba(255,255,255,0.85);
+box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.15);
 }
-.form-input::placeholder { color: #B0B8C4; }
+.form-input::placeholder { color: #B0A898; }
 select.form-input {
 background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7280' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
 background-repeat: no-repeat;
@@ -217,8 +291,8 @@ padding-right: 40px;
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .consent-group {
 display: flex; align-items: flex-start; gap: 12px;
-padding: 16px; background: var(--bg-secondary);
-border-radius: var(--radius-xs);
+padding: 16px; background: rgba(255,255,255,0.5);
+border-radius: var(--radius-xs); border: 1px solid rgba(201,169,97,0.08);
 }
 .consent-group input[type="checkbox"] {
 width: 20px; height: 20px;
@@ -230,75 +304,111 @@ accent-color: var(--primary);
 
 /* ===== HOME VIEW ===== */
 #home-view { background: var(--bg-secondary); }
-.home-header {
-  background: var(--primary);
-  padding: 0 16px;
-  height: 52px;
-  color: #fff;
-  position: sticky; top: 0; z-index: 10;
-  display: flex; align-items: center; justify-content: space-between;
-  transition: all 0.3s ease;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.08);
-}
-.home-header.scrolled {
-  backdrop-filter: blur(20px) saturate(180%);
-  background: rgba(var(--primary-rgb), 0.85);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-}
-.home-brand { display: flex; align-items: center; gap: 10px; }
-.home-brand-logo {
-  width: 32px; height: 32px;
-  background: rgba(255,255,255,0.12);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
+
+/* Hero unificado: contiene barra + bienvenida */
+.home-hero {
+  position: relative;
+  min-height: 360px;
+  display: flex; flex-direction: column;
   overflow: hidden;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+}
+.home-hero-bg {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center;
+}
+.home-hero-scrim {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg,
+    rgba(var(--primary-rgb),0.55) 0%,
+    rgba(var(--primary-rgb),0.12) 32%,
+    rgba(var(--primary-rgb),0.58) 68%,
+    var(--bg) 100%);
+}
+
+/* Top bar inside hero */
+.home-hero-bar {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px;
+  color: #fff;
+}
+.home-hero-bar .home-brand-logo {
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.home-brand-logo img { max-width: 24px; max-height: 24px; object-fit: contain; }
-.home-brand-logo .logo-sm { font-size: 14px; font-weight: 700; color: var(--accent); }
-.home-brand-name { font-size: 14px; font-weight: 600; letter-spacing: -0.2px; white-space: nowrap; }
+.home-hero-bar .home-brand-logo img {
+  max-height: 38px;
+  max-width: 140px;
+  object-fit: contain;
+  display: block;
+}
+.home-hero-bar .home-brand-logo .logo-sm {
+  width: 40px; height: 40px;
+  background: rgba(255,255,255,0.10);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; color: var(--accent);
+  border: 1px solid rgba(255,255,255,0.08);
+}
 .home-lang-btn {
-  padding: 5px 12px; border-radius: 14px;
-  background: rgba(255,255,255,0.1);
-  color: #fff; font-size: 11px; font-weight: 600;
+  padding: 7px 16px; border-radius: 18px;
+  background: rgba(255,255,255,0.10);
+  color: #fff; font-size: 12px; font-weight: 600;
   letter-spacing: 0.5px;
   flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.2s ease;
+  min-height: 32px;
 }
+.home-lang-btn:hover { background: rgba(255,255,255,0.18); }
 
-
-/* Welcome Card (outside header) */
+/* Welcome content inside hero */
 .home-welcome {
-  padding: 20px 20px 4px;
+  position: relative; z-index: 2;
+  padding: 28px 24px 32px;
+  margin-top: auto;
 }
 .home-welcome h1 {
-  font-size: 24px; font-weight: 700;
-  line-height: 1.15; letter-spacing: -0.5px;
-  color: var(--text);
-  margin-bottom: 4px;
+font-size: clamp(28px, 7vw, 36px); font-weight: 700;
+line-height: 1.15; letter-spacing: -0.5px;
+color: #fff;
+margin-bottom: 8px;
+font-family: var(--font-serif);
+text-shadow: 0 2px 16px rgba(0,0,0,0.25);
 }
 .home-welcome-accent {
-  width: 28px; height: 3px;
-  background: var(--accent);
+  width: 32px; height: 3px;
+  background: rgba(255,255,255,0.55);
   border-radius: 2px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 .home-welcome p {
-  font-size: 13px; font-weight: 400;
-  color: var(--text-light);
+  font-size: 14px; font-weight: 400;
+  color: rgba(255,255,255,0.85);
   margin: 0;
+  line-height: 1.5;
 }
+.hero-hotel-name {
+  font-size: 15px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.7);
+  margin: 0 0 6px !important;
+}
+.hero-hotel-name:empty { display: none; }
 
-.home-content { padding: 0 0 72px; }
+.home-content { padding: 0 0 80px; }
 
 /* PWA Install Banner */
 .pwa-banner {
-margin: 16px 16px 0;
+margin: 16px 24px 0;
 padding: 16px 20px;
-background: linear-gradient(135deg, var(--primary), var(--primary-light));
+background: linear-gradient(135deg, var(--primary), #2A2520);
 border-radius: var(--radius);
 color: #fff;
 display: flex; align-items: center; gap: 14px;
-box-shadow: var(--shadow);
+box-shadow: 0 4px 20px rgba(31,27,22,0.15);
+border: 1px solid rgba(201,169,97,0.12);
 }
 .pwa-banner-icon { flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
 .pwa-banner-icon svg { width: 32px; height: 32px; color: #fff; }
@@ -312,28 +422,54 @@ font-size: 20px; line-height: 1;
 .pwa-banner-close:hover { opacity: 1; }
 
 /* Module Grid */
+/* ===== SECTION HEADING ("hilo del conserje" signature) ===== */
+.section-heading { padding: 32px 24px 16px; }
+.section-eyebrow {
+font-size: 11px; font-weight: 600;
+letter-spacing: 0.12em; text-transform: uppercase;
+color: var(--accent);
+margin-bottom: 8px;
+}
 .section-title {
-font-size: 17px; font-weight: 700;
-color: var(--text);
-padding: 28px 20px 14px;
+font-size: 21px; font-weight: 700;
+color: var(--primary);
+padding: 0;
+margin-bottom: 10px;
 letter-spacing: -0.3px;
+font-family: var(--font-serif);
+}
+.section-hairline {
+width: 40px; height: 1px;
+background: rgba(var(--accent-rgb),0.35);
 }
 .module-grid {
 display: grid;
 grid-template-columns: repeat(2, 1fr);
-gap: 12px;
-padding: 0 16px;
+gap: 14px;
+padding: 0 24px 8px;
+}
+.animate-in { animation: cardSlideUp 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+.delay-1 { animation-delay: 0.05s; }
+.delay-2 { animation-delay: 0.1s; }
+.delay-3 { animation-delay: 0.15s; }
+.delay-4 { animation-delay: 0.2s; }
+@keyframes cardSlideUp {
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
 }
 .module-card {
 background: var(--bg-card);
+backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 border-radius: var(--radius);
-padding: 20px 16px;
-text-align: center;
-box-shadow: var(--shadow);
-transition: var(--transition);
-position: relative;
-overflow: hidden;
+padding: 20px 18px 18px;
+text-align: left;
+box-shadow: 0 1px 2px rgba(var(--primary-rgb),0.04), 0 6px 20px rgba(var(--primary-rgb),0.06);
+border: 1px solid rgba(var(--accent-rgb),0.14);
+transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+position: relative; overflow: hidden;
 }
+.module-card:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(var(--primary-rgb),0.05), 0 16px 40px rgba(var(--primary-rgb),0.12); border-color: rgba(var(--accent-rgb),0.28); }
+.module-card:active { transform: scale(0.98); }
 .module-card::before {
 content: '';
 position: absolute; top: 0; left: 0; right: 0;
@@ -342,94 +478,151 @@ transform: scaleX(0); transform-origin: left;
 transition: transform 0.3s ease;
 }
 .module-card:hover::before, .module-card:active::before { transform: scaleX(1); }
-.module-card:active { transform: scale(0.97); }
 .module-icon {
-width: 56px; height: 56px;
-margin: 0 auto 12px;
-background: var(--bg-secondary);
-border-radius: 16px;
+width: 46px; height: 46px;
+margin: 0 0 14px;
+background: rgba(var(--accent-rgb),0.10);
+border-radius: 14px;
 display: flex; align-items: center; justify-content: center;
-color: var(--primary);
+color: var(--accent);
+flex-shrink: 0;
 }
-.module-icon svg { width: 28px; height: 28px; }
-.module-card h3 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-.module-card p { font-size: 12px; color: var(--text-light); line-height: 1.4; }
+.module-icon svg { width: 24px; height: 24px; }
+.module-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; text-align: left; }
+.module-card p { font-size: 13px; color: var(--text-light); line-height: 1.5; text-align: left; }
 .module-stage {
 position: absolute; top: 8px; right: 8px;
 font-size: 10px; font-weight: 600;
 padding: 2px 8px; border-radius: 10px;
 text-transform: uppercase; letter-spacing: 0.3px;
 }
-.stage-pre-arrival { background: #DBEAFE; color: #1D4ED8; }
-.stage-in-stay { background: #D1FAE5; color: #065F46; }
-.stage-pre-checkout { background: #FEF3C7; color: #92400E; }
+.stage-pre-arrival { background: rgba(var(--secondary-rgb),0.14); color: var(--secondary); }
+.stage-in-stay { background: rgba(var(--primary-rgb),0.12); color: var(--primary); }
+.stage-pre-checkout { background: rgba(var(--accent-rgb),0.18); color: var(--accent-hover); }
+
+/* Push notifications opt-in */
+.push-card {
+margin: 4px 24px 20px;
+background: var(--bg-card);
+backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+border-radius: var(--radius);
+padding: 16px 18px;
+display: flex; align-items: flex-start; gap: 14px;
+box-shadow: 0 1px 2px rgba(var(--primary-rgb),0.04), 0 6px 20px rgba(var(--primary-rgb),0.06);
+border: 1px solid rgba(var(--accent-rgb),0.14);
+transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.push-card.fade-out-push { opacity: 0; transform: translateY(-6px); }
+.push-card-icon {
+width: 40px; height: 40px; flex-shrink: 0;
+background: rgba(var(--accent-rgb),0.12);
+border-radius: 50%;
+display: flex; align-items: center; justify-content: center;
+color: var(--accent);
+}
+.push-card-text { flex: 1; min-width: 0; }
+.push-card-text h3 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.push-card-text p { font-size: 13px; color: var(--text-light); line-height: 1.45; margin-bottom: 12px; }
+.push-card-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.push-btn-enable {
+background: var(--primary); color: #fff;
+font-size: 13px; font-weight: 600;
+padding: 8px 16px; border-radius: 50px;
+transition: var(--transition);
+}
+.push-btn-enable:hover { opacity: 0.9; }
+.push-btn-dismiss {
+background: none; color: var(--text-light);
+font-size: 13px; font-weight: 500;
+padding: 8px 4px;
+}
 
 /* Promos */
 .promo-scroll {
-display: flex; gap: 12px;
-padding: 0 16px;
-overflow-x: auto;
+display: flex; gap: 14px; overflow-x: auto;
+padding: 0 24px 16px;
 scroll-snap-type: x mandatory;
+scroll-padding-left: 8px;
 -webkit-overflow-scrolling: touch;
 scrollbar-width: none;
 }
 .promo-scroll::-webkit-scrollbar { display: none; }
 .promo-card {
-min-width: 280px; max-width: 300px;
+min-width: 290px; max-width: 310px;
 background: var(--bg-card);
+backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 border-radius: var(--radius);
 overflow: hidden;
-box-shadow: var(--shadow);
+box-shadow: 0 2px 16px rgba(var(--primary-rgb),0.06);
+border: 1px solid rgba(var(--accent-rgb),0.08);
 scroll-snap-align: start;
+scroll-margin-left: 12px;
 flex-shrink: 0;
-transition: var(--transition);
+transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
 }
+.promo-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(var(--primary-rgb),0.12); border-color: rgba(var(--accent-rgb),0.2); }
 .promo-card:active { transform: scale(0.98); }
+.promo-media { position: relative; }
 .promo-img {
-width: 100%; height: 160px;
+width: 100%; height: 170px;
 object-fit: cover;
 background: var(--bg-secondary);
+display: block;
 }
-.promo-body { padding: 16px; }
-.promo-body h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-.promo-body p { font-size: 13px; color: var(--text-light); margin-bottom: 12px; line-height: 1.5; }
+.promo-media::after {
+content: ''; position: absolute; inset: 0;
+background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.28) 100%);
+pointer-events: none;
+}
 .promo-price {
-font-size: 20px; font-weight: 700; color: var(--accent);
-margin-bottom: 12px;
+position: absolute; top: 12px; right: 12px; z-index: 2;
+background: rgba(var(--primary-rgb),0.72);
+backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+color: #fff; font-size: 13px; font-weight: 700;
+padding: 6px 14px; border-radius: 20px;
 }
+.promo-body { padding: 18px 20px 20px; }
+.promo-body h3 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+.promo-body p { font-size: 13px; color: var(--text-light); margin-bottom: 14px; line-height: 1.5; }
 .btn-cta {
 display: inline-flex; align-items: center; gap: 6px;
-background: var(--primary); color: #fff;
-padding: 10px 20px; border-radius: 8px;
-font-size: 14px; font-weight: 500;
+background: var(--accent); color: #1F1B16;
+padding: 10px 20px; border-radius: 50px;
+font-size: 14px; font-weight: 600;
 transition: var(--transition);
 }
-.btn-cta:hover { background: var(--primary-light); }
+.btn-cta:hover { background: var(--accent-hover); }
 .btn-cta::after { content: none; }
 
 /* FAQ */
-.faq-list { padding: 0 16px; }
+.faq-list { padding: 0 24px; }
 .faq-item {
-background: var(--bg-card);
-border-radius: var(--radius-sm);
-margin-bottom: 8px;
-box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+background: transparent;
+border-radius: 0;
+margin-bottom: 0;
+border: none;
+border-bottom: 1px solid rgba(var(--accent-rgb),0.14);
+box-shadow: none;
 overflow: hidden;
+transition: background 0.25s ease;
 }
+.faq-item:last-child { border-bottom: none; }
+.faq-item:hover { background: rgba(var(--accent-rgb),0.04); }
 .faq-question {
 width: 100%;
-padding: 16px 20px;
+padding: 18px 4px;
 display: flex; align-items: center; justify-content: space-between;
+gap: 12px;
 text-align: left;
-font-size: 15px; font-weight: 500; color: var(--text);
-transition: var(--transition);
+font-size: 15px; font-weight: 600; color: var(--text);
+transition: all 0.2s ease;
 }
-.faq-question:hover { background: var(--bg-secondary); }
+.faq-question:hover { background: transparent; }
 .faq-arrow {
 width: 24px; height: 24px;
 display: flex; align-items: center; justify-content: center;
-transition: transform 0.3s ease;
-color: var(--text-light);
+transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+color: var(--accent);
 flex-shrink: 0;
 }
 .faq-arrow svg { width: 16px; height: 16px; }
@@ -441,18 +634,25 @@ transition: max-height 0.35s ease, padding 0.35s ease;
 }
 .faq-item.open .faq-answer { max-height: 500px; }
 .faq-answer-inner {
-padding: 0 20px 16px;
+padding: 0 4px 18px;
 font-size: 14px; color: var(--text-light);
 line-height: 1.7;
 }
 
-/* Contact Bar */
+/* Contact Bar - floating pill dock */
 .contact-bar {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  display: flex; justify-content: center; gap: 8px;
-  padding: 8px 16px;
-  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  position: fixed; bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  display: flex; justify-content: center; align-items: center; gap: 4px;
+  padding: 6px;
+  margin-bottom: max(16px, env(safe-area-inset-bottom));
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(var(--accent-rgb),0.14);
+  border-radius: 50px;
+  box-shadow: 0 8px 30px rgba(var(--primary-rgb),0.14);
   z-index: 9999;
+  width: max-content;
 }
 /* Hide contact bar by default, show only on home view */
 .contact-bar.hidden-bar { display: none !important; }
@@ -481,7 +681,7 @@ line-height: 1.7;
 .post-section { margin-top: 8px; }
 .post-section-header {
 display: flex; align-items: center; gap: 12px;
-padding: 28px 20px 14px;
+padding: 28px 24px 14px;
 }
 .post-section-icon {
 width: 42px;
@@ -500,42 +700,53 @@ letter-spacing: -0.3px;
 }
 
 .post-scroll {
-display: flex; gap: 12px;
-padding: 0 16px 4px;
-overflow-x: auto;
+display: flex; gap: 14px; overflow-x: auto;
+padding: 0 24px 16px;
 scroll-snap-type: x mandatory;
+scroll-padding-left: 8px;
 -webkit-overflow-scrolling: touch;
 scrollbar-width: none;
 }
 .post-scroll::-webkit-scrollbar { display: none; }
 
 .post-card {
-min-width: 280px; max-width: 300px;
+min-width: 290px; max-width: 310px;
 background: var(--bg-card);
+backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 border-radius: var(--radius);
 overflow: hidden;
-box-shadow: var(--shadow);
+box-shadow: 0 2px 16px rgba(var(--primary-rgb),0.06);
+border: 1px solid rgba(var(--accent-rgb),0.08);
 scroll-snap-align: start;
+scroll-margin-left: 12px;
 flex-shrink: 0;
-transition: var(--transition);
+transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
 }
+.post-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(var(--primary-rgb),0.12); border-color: rgba(var(--accent-rgb),0.2); }
 .post-card:active { transform: scale(0.98); }
+.post-media { position: relative; }
 .post-card-img {
-width: 100%; height: 180px;
+width: 100%; height: 170px;
 object-fit: cover;
 background: var(--bg-secondary);
+display: block;
 }
-.post-card-body { padding: 16px; }
+.post-media::after {
+content: ''; position: absolute; inset: 0;
+background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.28) 100%);
+pointer-events: none;
+}
+.post-card-body { padding: 18px 20px 20px; }
 .post-card-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
 .post-card-subtitle { font-size: 13px; color: var(--text-light); margin-bottom: 12px; line-height: 1.5; }
 .post-card-btn {
 display: inline-flex; align-items: center; gap: 6px;
-background: var(--primary); color: #fff;
-padding: 10px 20px; border-radius: 8px;
-font-size: 14px; font-weight: 500;
+background: var(--accent); color: #1F1B16;
+padding: 10px 20px; border-radius: 50px;
+font-size: 14px; font-weight: 600;
 transition: var(--transition);
 }
-.post-card-btn:hover { background: var(--primary-light); }
+.post-card-btn:hover { background: var(--accent-hover); }
 .post-card-btn::after { content: none; }
 
 /* Post Detail */
@@ -561,6 +772,7 @@ font-size: 15px;
 }
 .post-detail-content h1, .post-detail-content h2, .post-detail-content h3 {
 color: var(--primary);
+font-family: var(--font-serif);
 margin: 24px 0 12px;
 }
 .post-detail-content h1 { font-size: 24px; }
@@ -592,8 +804,9 @@ width: 100%;
 #detail-view { background: var(--bg); }
 .detail-header {
 position: sticky; top: 0; z-index: 10;
-background: var(--bg-card);
-border-bottom: 1px solid var(--border);
+background: rgba(var(--bg-rgb),0.72);
+backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%);
+border-bottom: 1px solid rgba(var(--accent-rgb),0.14);
 padding: 12px 16px;
 display: flex; align-items: center; gap: 12px;
 }
@@ -607,7 +820,7 @@ color: var(--text);
 }
 .back-btn svg { width: 20px; height: 20px; }
 .back-btn:active { background: var(--border); }
-.detail-title { font-size: 18px; font-weight: 600; flex: 1; }
+.detail-title { font-size: 18px; font-weight: 700; flex: 1; font-family: var(--font-serif); color: var(--primary); }
 .detail-body {
 padding: 20px 16px;
 line-height: 1.8;
@@ -615,6 +828,7 @@ font-size: 15px;
 }
 .detail-body h1, .detail-body h2, .detail-body h3 {
 color: var(--primary);
+font-family: var(--font-serif);
 margin: 24px 0 12px;
 }
 .detail-body h1 { font-size: 24px; }
@@ -639,9 +853,9 @@ text-transform: uppercase;
 letter-spacing: 0.5px;
 margin-bottom: 20px;
 }
-.detail-stage-badge.pre-arrival { background: #DBEAFE; color: #1D4ED8; }
-.detail-stage-badge.in-stay { background: #D1FAE5; color: #065F46; }
-.detail-stage-badge.pre-checkout { background: #FEF3C7; color: #92400E; }
+.detail-stage-badge.pre-arrival { background: rgba(var(--secondary-rgb),0.14); color: var(--secondary); }
+.detail-stage-badge.in-stay { background: rgba(var(--primary-rgb),0.12); color: var(--primary); }
+.detail-stage-badge.pre-checkout { background: rgba(var(--accent-rgb),0.18); color: var(--accent-hover); }
 
 /* ===== ERROR ===== */
 .error-container {
@@ -666,12 +880,23 @@ to { opacity: 1; transform: translateY(0); }
 .delay-3 { animation-delay: 0.3s; opacity: 0; }
 .delay-4 { animation-delay: 0.4s; opacity: 0; }
 
+/* Scroll reveal (home sections) */
+.reveal {
+opacity: 0; transform: translateY(16px);
+transition: opacity 0.5s cubic-bezier(0.16,1,0.3,1), transform 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal.in-view { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+.reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+}
+
 /* ===== TOAST ===== */
 .toast {
 position: fixed; bottom: 100px;
 left: 50%; transform: translateX(-50%);
-background: var(--primary); color: #fff;
-padding: 12px 24px; border-radius: 12px;
+background: rgba(var(--primary-rgb),0.88); color: #fff;
+backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+padding: 12px 24px; border-radius: 50px;
 font-size: 14px; font-weight: 500;
 box-shadow: var(--shadow-lg);
 z-index: 100;
@@ -688,13 +913,579 @@ pointer-events: none;
 @media (min-width: 768px) {
 .module-grid { grid-template-columns: repeat(4, 1fr); }
 }
+
+/* ===== ONBOARDING FLOW (multi-step) ===== */
+#onboarding-flow { padding: 0; background: var(--bg); }
+.ob-progress {
+position: sticky; top: 0; z-index: 20;
+display: flex; align-items: center; gap: 10px;
+padding: 16px 24px 14px;
+padding-top: max(16px, env(safe-area-inset-top));
+background: rgba(244,239,230,0.92);
+backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+transition: background 0.3s ease;
+border-bottom: 1px solid rgba(201,169,97,0.08);
+}
+.ob-progress.on-hero { position: absolute; left: 0; right: 0; background: transparent; border-bottom: none; }
+.ob-progress:not(.on-hero) { background: rgba(244,239,230,0.92); border-bottom: 1px solid rgba(201,169,97,0.08); }
+.ob-step:not(.ob-hero) { padding-top: 62px; }
+.ob-back {
+width: 38px; height: 38px; border-radius: 12px;
+display: flex; align-items: center; justify-content: center;
+background: var(--bg-secondary); color: var(--text);
+flex-shrink: 0; transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+.ob-back:hover { background: rgba(201,169,97,0.15); color: var(--accent); }
+.ob-progress.on-hero .ob-back { background: rgba(255,255,255,0.18); color: #fff; backdrop-filter: blur(8px); }
+.ob-progress.on-hero .ob-back:hover { background: rgba(255,255,255,0.28); }
+.ob-back:active { transform: scale(0.92); }
+.ob-back svg { width: 18px; height: 18px; }
+.ob-brand{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;letter-spacing:-0.2px;display:none;margin-left:4px}
+.ob-progress.on-hero .ob-brand{color:#fff}
+.ob-dots { display: flex; gap: 8px; flex: 1; justify-content: center; }
+.ob-dot {
+height: 4px; width: 20px; border-radius: 4px;
+background: var(--border);
+transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.ob-progress.on-hero .ob-dot { background: rgba(255,255,255,0.3); }
+.ob-dot.active { background: var(--accent); width: 28px; }
+.ob-progress.on-hero .ob-dot.active { background: #fff; }
+.ob-dot.done { background: var(--primary); }
+.ob-progress.on-hero .ob-dot.done { background: rgba(255,255,255,0.7); }
+.ob-skip {
+font-size: 13px; font-weight: 600; color: var(--text-light);
+padding: 8px 12px; flex-shrink: 0; border-radius: 8px;
+transition: all 0.2s;
+}
+.ob-skip:hover { background: rgba(201,169,97,0.1); color: var(--accent); }
+.ob-progress.on-hero .ob-skip { color: rgba(255,255,255,0.85); }
+.ob-progress.on-hero .ob-skip:hover { background: rgba(255,255,255,0.12); }
+
+.ob-step {
+position: absolute; inset: 0;
+display: flex; flex-direction: column;
+opacity: 0; transform: translateX(28px);
+pointer-events: none;
+transition: opacity 0.42s cubic-bezier(0.4,0,0.2,1), transform 0.42s cubic-bezier(0.4,0,0.2,1);
+overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+.ob-step.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+.ob-step.prev { transform: translateX(-28px); }
+
+/* Step: Welcome hero */
+.ob-hero { background: var(--primary); color: #fff; }
+.ob-hero-bg { position: absolute; inset: 0; background-size: cover; background-position: center; }
+.ob-hero-bg::after {
+content: ''; position: absolute; inset: 0;
+background: linear-gradient(180deg, rgba(var(--primary-rgb),0.30) 0%, rgba(var(--primary-rgb),0.80) 62%, rgba(var(--primary-rgb),0.98) 100%);
+}
+.ob-hero-content {
+position: relative; z-index: 2; flex: 1;
+display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+padding: 40px 24px calc(48px + env(safe-area-inset-bottom)); text-align: center;
+}
+.ob-badge-inline {
+display: inline-flex; align-items: center; gap: 7px;
+font-size: 12px; font-weight: 600; letter-spacing: 0.4px;
+padding: 7px 14px; border-radius: 30px;
+background: rgba(255,255,255,0.16); backdrop-filter: blur(8px);
+border: 1px solid rgba(255,255,255,0.22);
+margin-bottom: 20px;
+}
+.ob-badge-inline svg { width: 14px; height: 14px; }
+
+/* Step: value carousel */
+.ob-value { padding: 24px 0 32px; }
+.ob-value-head { padding: 12px 28px 4px; }
+.ob-value-head h2 { font-size: 26px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; line-height: 1.2; }
+.ob-value-head p { font-size: 15px; color: var(--text-light); margin-top: 8px; }
+.ob-value-scroll {
+display: flex; gap: 14px; padding: 24px 24px 8px;
+overflow-x: auto; scroll-snap-type: x mandatory;
+scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.ob-value-scroll::-webkit-scrollbar { display: none; }
+.ob-value-card {
+min-width: 78%; max-width: 78%;
+background: var(--bg-card);
+border: 1px solid rgba(var(--accent-rgb),0.14);
+border-radius: var(--radius);
+box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+padding: 28px 24px; scroll-snap-align: center; flex-shrink: 0;
+}
+@media (min-width: 560px) { .ob-value-card { min-width: 300px; max-width: 320px; } }
+.ob-value-icon {
+width: 64px; height: 64px; border-radius: 50%;
+display: flex; align-items: center; justify-content: center;
+background: rgba(var(--accent-rgb),0.12); color: var(--accent);
+margin-bottom: 18px;
+}
+.ob-value-icon svg { width: 30px; height: 30px; }
+.ob-value-card h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.ob-value-card p { font-size: 14px; color: var(--text-light); line-height: 1.55; }
+.ob-value-dots { display: flex; justify-content: center; gap: 8px; padding: 4px 0 6px; }
+
+/* Step: capture form */
+.ob-form { padding: 8px 24px 12px; }
+.ob-form h2 { font-size: 25px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; line-height: 1.2; }
+.ob-form-sub { font-size: 15px; color: var(--text-light); margin-top: 8px; margin-bottom: 24px; }
+.field-hint { font-size: 12px; color: var(--text-light); margin-top: 6px; line-height: 1.4; }
+.form-input.invalid { border-color: #DC2626; background: #FEF2F2; }
+.field-error { font-size: 12px; color: #DC2626; margin-top: 5px; display: none; }
+.field-error.show { display: block; }
+.ob-express {
+display: block; width: 100%; text-align: center;
+margin-top: 16px; padding: 14px;
+font-size: 15px; font-weight: 600; color: var(--primary);
+background: none;
+}
+.ob-express:active { opacity: 0.6; }
+
+/* Step: closing */
+.ob-close { align-items: center; justify-content: center; text-align: center; padding: 40px 28px; }
+.ob-close-check {
+width: 92px; height: 92px; border-radius: 50%;
+background: rgba(var(--primary-rgb),0.10); color: var(--primary);
+display: flex; align-items: center; justify-content: center;
+margin-bottom: 28px;
+animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+.ob-close-check svg { width: 46px; height: 46px; }
+@keyframes popIn { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.ob-close h2 { font-size: 28px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; margin-bottom: 10px; }
+.ob-close p { font-size: 16px; color: var(--text-light); line-height: 1.55; max-width: 340px; margin-bottom: 32px; }
+
+.ob-install-card {
+width: 100%; max-width: 380px;
+background: linear-gradient(135deg, var(--primary), var(--primary-light));
+color: #fff; border-radius: var(--radius);
+padding: 22px; margin-bottom: 20px; text-align: left;
+display: flex; gap: 16px; align-items: center;
+box-shadow: var(--shadow);
+}
+.ob-install-card-icon {
+width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
+background: rgba(255,255,255,0.16);
+display: flex; align-items: center; justify-content: center;
+}
+.ob-install-card-icon svg { width: 26px; height: 26px; }
+.ob-install-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+.ob-install-card p { font-size: 12.5px; color: rgba(255,255,255,0.85); margin: 0; line-height: 1.4; }
+
+.ob-footer { padding: 12px 24px calc(28px + env(safe-area-inset-bottom)); margin-top: auto; }
+.btn-ghost {
+display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+background: rgba(255,255,255,0.08); color: #fff;
+padding: 14px 32px; border-radius: 50px;
+font-size: 15px; font-weight: 500; letter-spacing: 0.3px;
+width: 100%; max-width: 320px;
+border: 1px solid rgba(255,255,255,0.2);
+transition: all 0.3s cubic-bezier(0.16,1,0.3,1); min-height: 52px;
+backdrop-filter: blur(8px);
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.35); }
+.btn-ghost:active { transform: scale(0.98); }
+.btn-secondary {
+display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+background: var(--primary); color: #fff;
+padding: 15px 32px; border-radius: 50px;
+font-size: 16px; font-weight: 600; width: 100%; max-width: 340px;
+transition: var(--transition); min-height: 54px;
+box-shadow: 0 4px 18px rgba(var(--primary-rgb),0.28);
+}
+.btn-secondary:active { transform: scale(0.98); }
+
+/* ===== iOS INSTALL BOTTOM SHEET ===== */
+.ios-sheet-backdrop {
+position: fixed; inset: 0; z-index: 9500;
+background: rgba(0,0,0,0.5); opacity: 0;
+transition: opacity 0.3s ease; pointer-events: none;
+}
+.ios-sheet-backdrop.show { opacity: 1; pointer-events: auto; }
+.ios-sheet {
+position: fixed; left: 0; right: 0; bottom: 0; z-index: 9600;
+background: var(--bg); color: var(--text);
+border-radius: 24px 24px 0 0;
+padding: 12px 24px calc(28px + env(safe-area-inset-bottom));
+transform: translateY(105%);
+transition: transform 0.4s cubic-bezier(0.32,0.72,0,1);
+box-shadow: 0 -8px 40px rgba(0,0,0,0.2);
+max-width: 480px; margin: 0 auto;
+}
+.ios-sheet.show { transform: translateY(0); }
+.ios-sheet-grip { width: 40px; height: 4px; border-radius: 4px; background: var(--border); margin: 0 auto 20px; }
+.ios-sheet h3 { font-size: 20px; font-weight: 700; margin-bottom: 6px; text-align: center; }
+.ios-sheet-sub { font-size: 14px; color: var(--text-light); text-align: center; margin-bottom: 24px; line-height: 1.5; }
+.ios-step { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-top: 1px solid var(--border); }
+.ios-step:first-of-type { border-top: none; }
+.ios-step-num {
+width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+background: var(--primary); color: #fff;
+display: flex; align-items: center; justify-content: center;
+font-size: 14px; font-weight: 700;
+}
+.ios-step-icon {
+width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+background: var(--bg-secondary); color: var(--primary);
+display: flex; align-items: center; justify-content: center;
+}
+.ios-step-icon svg { width: 22px; height: 22px; }
+.ios-step-text { font-size: 14px; color: var(--text); line-height: 1.4; }
+.ios-step-text b { font-weight: 700; color: var(--primary); }
+.ios-sheet-close {
+width: 100%; margin-top: 22px; padding: 14px;
+background: var(--bg-secondary); color: var(--text);
+border-radius: 14px; font-size: 15px; font-weight: 600;
+}
+
+/* ===== SKELETON LOADERS ===== */
+.sk { position: relative; overflow: hidden; background: var(--bg-secondary); border-radius: var(--radius-xs); }
+.sk::after {
+content: ''; position: absolute; inset: 0;
+transform: translateX(-100%);
+background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+animation: shimmer 1.3s infinite;
+}
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+.sk-card { height: 118px; border-radius: var(--radius); }
+.sk-line { height: 12px; margin: 8px 0; }
+.sk-line.w60 { width: 60%; } .sk-line.w40 { width: 40%; } .sk-line.w80 { width: 80%; }
+.sk-value-card {
+min-width: 78%; max-width: 78%; height: 220px;
+border-radius: var(--radius); flex-shrink: 0;
+}
+
+/* ═══ 3. THEME: BOUTIQUE ═══ */
+/* Boutique is the base preset (see :root above); no overrides needed. */
+
+/* ═══ 4. THEME: URBAN ═══ */
+body[data-theme="urban"] .popup-modal,
+body[data-theme="urban"] .ios-sheet { background: rgba(22,27,34,0.96); color: var(--text); }
+body[data-theme="urban"] .ios-sheet-grip { background: rgba(255,255,255,0.18); }
+body[data-theme="urban"] .module-card,
+body[data-theme="urban"] .promo-card,
+body[data-theme="urban"] .post-card {
+box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+border-color: rgba(255,255,255,0.08);
+}
+body[data-theme="urban"] .module-grid {
+grid-template-columns: repeat(2, 1fr);
+gap: 10px;
+padding: 0 16px 8px;
+}
+body[data-theme="urban"] .module-card { padding: 14px 14px 12px; min-height: 120px; display: flex; flex-direction: column; justify-content: flex-start; }
+body[data-theme="urban"] .module-card h3 { font-size: 0.95rem; }
+body[data-theme="urban"] .module-card p { display: none; }
+body[data-theme="urban"] .module-icon { width: 40px; height: 40px; margin-bottom: 10px; border-radius: 10px; }
+body[data-theme="urban"] .module-icon svg { width: 20px; height: 20px; }
+body[data-theme="urban"] .module-card { position: relative; }
+/* Cuando el tile tiene badge de etapa, reserva espacio arriba para que no se empalme con título/icono */
+body[data-theme="urban"] .module-card.has-badge { padding-top: 32px; }
+/* El chevron solo existe visualmente en urban; sin esto sale a tamaño natural en los demás themes */
+.module-card .module-chevron { display: none; }
+body[data-theme="urban"] .module-card .module-chevron {
+display: block; position: absolute; right: 10px; bottom: 12px; color: var(--secondary); opacity: 0.7; pointer-events: none;
+}
+body[data-theme="urban"] .module-card .module-chevron svg { width: 14px; height: 14px; }
+body[data-theme="urban"] .section-eyebrow { color: var(--secondary); }
+body[data-theme="urban"] .home-content { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+body[data-theme="urban"] .contact-bar { display: none !important; }
+body[data-theme="urban"][data-view="home-view"] .bottom-nav { display: flex; }
+body[data-theme="urban"] .zen-index { display: none !important; }
+
+/* ═══ 5. THEME: RESORT — "Mosaico de color" ═══ */
+body[data-theme="resort"] .home-hero { min-height: 420px; }
+/* Módulos: grid de mosaico de color, sin cajas */
+body[data-theme="resort"] .module-grid {
+display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; padding: 0 20px 8px;
+}
+.mosaic-tile {
+position: relative; border-radius: 18px; padding: 16px;
+aspect-ratio: 4 / 3; min-height: 130px;
+display: flex; flex-direction: column; justify-content: space-between;
+overflow: hidden; box-shadow: none; border: none;
+transition: transform 0.15s ease;
+}
+.mosaic-tile:active { transform: scale(0.97); }
+.mosaic-icon { width: 28px; height: 28px; }
+.mosaic-icon svg { width: 28px; height: 28px; }
+/* color:inherit — el tile define su color de texto inline según luminancia del fondo */
+.mosaic-text h3 { font-family: var(--font-display); font-weight: 700; font-size: 1rem; margin-bottom: 2px; color: inherit; }
+.mosaic-text p { font-size: 0.78rem; opacity: 0.85; margin: 0; color: inherit; }
+.mosaic-tile .mosaic-icon, .mosaic-tile .mosaic-icon svg { color: inherit; }
+.mosaic-tile .module-stage { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.28); backdrop-filter: blur(6px); color: inherit; }
+/* Posts/promos: fotografía sin caja, degradado inferior, título encima */
+body[data-theme="resort"] .promo-scroll,
+body[data-theme="resort"] .post-scroll {
+display: block; overflow: visible; padding: 0 20px 8px;
+}
+body[data-theme="resort"] .promo-card,
+body[data-theme="resort"] .post-card,
+body[data-theme="resort"] .module-card {
+background: transparent; box-shadow: none; border: none; padding: 0; border-radius: 0;
+}
+body[data-theme="resort"] .xl-card {
+width: 100%; margin-bottom: 20px; min-width: 0; max-width: none;
+border-radius: var(--radius); overflow: hidden; box-shadow: none;
+}
+body[data-theme="resort"] .btn-cta { background: var(--accent); color: #fff; }
+body[data-theme="resort"] .btn-cta:hover { background: var(--secondary); }
+/* Section headings: eyebrow con chip de color + título Outfit 800 */
+body[data-theme="resort"] .section-eyebrow {
+font-size: 0.72rem; display: flex; align-items: center; gap: 8px; color: var(--text-light);
+}
+body[data-theme="resort"] .section-eyebrow::before {
+content: ''; width: 10px; height: 10px; border-radius: 3px; background: var(--accent); display: inline-block; flex-shrink: 0;
+}
+body[data-theme="resort"] .section-title {
+font-family: var(--font-display); font-weight: 800; font-size: 1.5rem; letter-spacing: -0.3px;
+}
+body[data-theme="resort"] .zen-index { display: none !important; }
+/* Header overlay: degradado del primary en vez de negro puro (ver applyHeroOverlay en JS) */
+
+/* ═══ 6. THEME: ZEN ═══ */
+body[data-theme="zen"] .home-content { max-width: 640px; margin: 0 auto; padding-left: 0; padding-right: 0; }
+body[data-theme="zen"] .home-hero { min-height: 280px; }
+body[data-theme="zen"] .section-heading { padding: 28px 24px 12px; }
+body[data-theme="zen"] .module-card,
+body[data-theme="zen"] .promo-card,
+body[data-theme="zen"] .post-card {
+box-shadow: none; border: none; border-radius: 0;
+background: transparent;
+}
+body[data-theme="zen"] .module-grid,
+body[data-theme="zen"] .promo-scroll,
+body[data-theme="zen"] .post-scroll {
+display: block; overflow: visible; padding: 0 24px;
+}
+body[data-theme="zen"] .list-row {
+display: flex; align-items: center; gap: 14px;
+padding: 16px 0;
+border-bottom: 1px solid #EBEAE6;
+}
+body[data-theme="zen"] .list-row:last-child { border-bottom: none; }
+body[data-theme="zen"] .list-row .module-icon,
+body[data-theme="zen"] .list-row .promo-icon {
+background: none; color: var(--accent); width: 28px; height: 28px; flex-shrink: 0;
+}
+body[data-theme="zen"] .contact-bar { box-shadow: none; border: 1px solid #EBEAE6; }
+body[data-theme="zen"] .push-card,
+body[data-theme="zen"] .pwa-banner { box-shadow: none; border: 1px solid #EBEAE6; border-radius: var(--radius-sm); }
+body[data-theme="zen"] .bottom-nav { display: none !important; }
+body[data-theme="zen"] .zen-index { display: flex; }
+
+/* ═══ 7. COMPONENTES NUEVOS ═══ */
+/* Bottom nav (urban) — always in DOM, shown only under body[data-theme=urban] */
+.bottom-nav {
+position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+display: none; justify-content: space-around; align-items: center;
+background: rgba(14,17,22,0.92);
+backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%);
+border-top: 1px solid rgba(255,255,255,0.08);
+padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+}
+.bottom-nav-item {
+display: flex; flex-direction: column; align-items: center; gap: 4px;
+flex: 1; padding: 6px 4px; color: rgba(241,245,249,0.55);
+font-size: 11px; font-weight: 600; border-radius: 10px;
+transition: color 0.2s ease;
+}
+.bottom-nav-item svg { width: 20px; height: 20px; }
+.bottom-nav-item.active { color: var(--secondary); }
+.bottom-nav-item:focus-visible { outline: 2px solid var(--secondary); outline-offset: 2px; }
+
+/* Zen index — anchor list, shown only under body[data-theme=zen] */
+.zen-index {
+display: none; flex-wrap: wrap; gap: 8px 18px;
+padding: 4px 24px 28px;
+max-width: 640px; margin: 0 auto;
+}
+.zen-index-link {
+font-size: 13px; font-weight: 500; color: var(--text-light);
+padding: 6px 0; border-bottom: 1px solid transparent;
+transition: color 0.2s ease, border-color 0.2s ease;
+}
+.zen-index-link:hover, .zen-index-link:focus-visible { color: var(--accent); border-color: var(--accent); }
+
+/* XL cards (resort) — full-bleed image with scrim + title/CTA overlay */
+.xl-card { position: relative; overflow: hidden; }
+.xl-card-img, .promo-media.xl-card-media .promo-img, .post-media.xl-card-media .post-card-img {
+width: 100%; height: 0; padding-bottom: 62.5%; /* ~16:10 */
+object-fit: cover; background-size: cover; background-position: center;
+display: block;
+}
+.xl-card-fallback { background: linear-gradient(135deg, var(--accent), var(--primary)); }
+.xl-card-scrim {
+position: absolute; inset: 0;
+background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.62) 100%);
+pointer-events: none;
+}
+.xl-card-body, .xl-card-overlay-body {
+position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+padding: 20px; color: #fff;
+}
+.xl-card-body h3, .xl-card-overlay-body h3 {
+font-size: 20px; font-weight: 800; color: #fff;
+font-family: var(--font-display); margin-bottom: 4px;
+text-shadow: 0 2px 10px rgba(0,0,0,0.35);
+}
+.xl-card-body p { font-size: 13px; color: rgba(255,255,255,0.88); }
+.xl-card-body .module-icon { background: rgba(255,255,255,0.18); color: #fff; margin-bottom: 10px; }
+.xl-card-overlay-body .btn-cta { margin-top: 8px; }
+.xl-card .module-stage { z-index: 3; }
+
+/* List rows (zen) generic layout fallback */
+.list-row-text { flex: 1; min-width: 0; }
+.list-row-text h3 { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+.list-row-text p { font-size: 13px; color: var(--text-light); }
+.list-row-price { font-size: 12px; color: var(--accent); font-weight: 600; }
+
+/* Push opt-in block inside onboarding closing step */
+.ob-push-optin {
+width: 100%; max-width: 380px; margin: 0 0 20px;
+background: var(--bg-card); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+border: 1px solid rgba(var(--accent-rgb),0.14); border-radius: var(--radius);
+padding: 18px; display: flex; align-items: flex-start; gap: 14px; text-align: left;
+}
+.ob-push-optin-icon {
+width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%;
+background: rgba(var(--accent-rgb),0.12); color: var(--accent);
+display: flex; align-items: center; justify-content: center;
+}
+.ob-push-optin-text { flex: 1; min-width: 0; }
+.ob-push-optin-text h3 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.ob-push-optin-text p { font-size: 13px; color: var(--text-light); line-height: 1.45; margin-bottom: 12px; }
+.ob-push-optin-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+/* ═══ 8. HEADER PRESETS ═══ */
+.home-hero-logo { display: none; align-items: center; justify-content: center; margin-bottom: 14px; }
+.home-hero-logo img { max-width: 96px; max-height: 64px; object-fit: contain; }
+.home-hero-logo .logo-sm2 {
+width: 56px; height: 56px; border-radius: 16px;
+background: rgba(255,255,255,0.14); display: flex; align-items: center; justify-content: center;
+font-size: 24px; font-weight: 700; color: #fff; border: 1px solid rgba(255,255,255,0.18);
+}
+.home-hero.header-centered .home-hero-bar .home-brand-logo { visibility: hidden; }
+.home-hero.header-centered { min-height: 420px; }
+.home-hero.header-centered .home-welcome {
+display: flex; flex-direction: column; align-items: center; text-align: center;
+justify-content: center; margin: auto 0; padding: 40px 24px;
+}
+.home-hero.header-centered .home-hero-logo { display: flex; }
+.home-hero.header-centered .home-welcome-accent { display: none; }
+
+.home-hero.header-split { min-height: 240px; }
+.home-hero.header-split .home-welcome {
+display: flex; flex-direction: row; align-items: center; gap: 20px; text-align: left;
+padding: 28px 28px; margin-top: auto;
+}
+.home-hero.header-split .home-hero-logo { display: flex; margin-bottom: 0; flex-shrink: 0; }
+.home-hero.header-split .home-hero-bar .home-brand-logo { visibility: hidden; }
+
+.home-hero.header-custom .home-welcome { display: flex; flex-direction: column; }
+.home-hero.header-custom .home-hero-logo { display: flex; }
+
+/* ═══ 9. LANGUAGE MENU ═══ */
+.lang-menu-overlay {
+position: fixed; inset: 0; z-index: 9500;
+background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+display: flex; align-items: flex-start; justify-content: flex-end;
+padding: 70px 20px 0;
+}
+.lang-menu-overlay.hidden { display: none; }
+.lang-menu {
+background: var(--bg); border-radius: var(--radius-sm); overflow: hidden;
+box-shadow: 0 12px 40px rgba(0,0,0,0.25); min-width: 180px;
+border: 1px solid rgba(var(--accent-rgb),0.14);
+}
+.lang-menu-item {
+display: flex; align-items: center; justify-content: space-between; gap: 10px;
+width: 100%; padding: 12px 16px; font-size: 14px; font-weight: 500; color: var(--text);
+transition: background 0.2s ease;
+}
+.lang-menu-item:hover { background: rgba(var(--accent-rgb),0.08); }
+.lang-menu-item.active { color: var(--accent); font-weight: 700; }
+
+/* ═══ 10. GALLERY (strip + full view + lightbox) ═══ */
+.gallery-strip {
+display: grid; grid-auto-flow: column; grid-auto-columns: minmax(120px, 1fr);
+gap: 10px; overflow-x: auto; padding: 0 24px 16px; scroll-snap-type: x mandatory;
+scroll-padding-left: 12px;
+-webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.gallery-strip::-webkit-scrollbar { display: none; }
+.gallery-thumb {
+width: 120px; height: 120px; border-radius: var(--radius-sm); overflow: hidden;
+flex-shrink: 0; scroll-snap-align: start; scroll-margin-left: 12px; position: relative;
+}
+.gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gallery-viewall {
+width: 120px; height: 120px; border-radius: var(--radius-sm); flex-shrink: 0;
+display: flex; align-items: center; justify-content: center; text-align: center;
+background: var(--bg-card); border: 1px solid rgba(var(--accent-rgb),0.2);
+font-size: 13px; font-weight: 600; color: var(--accent); padding: 8px;
+}
+.gallery-grid {
+display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+padding: 16px 24px calc(24px + env(safe-area-inset-bottom));
+}
+.gallery-cell { border-radius: var(--radius-sm); overflow: hidden; aspect-ratio: 1 / 1; }
+.gallery-cell img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease; }
+.gallery-cell:active img { transform: scale(0.96); }
+@media (min-width: 600px) { .gallery-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.lightbox-overlay {
+position: fixed; inset: 0; z-index: 9600; background: rgba(0,0,0,0.92);
+display: flex; align-items: center; justify-content: center;
+}
+.lightbox-overlay.hidden { display: none; }
+.lightbox-stage {
+position: relative; max-width: 92vw; max-height: 78vh;
+display: flex; flex-direction: column; align-items: center; justify-content: center;
+touch-action: pan-y;
+}
+.lightbox-stage img {
+max-width: 92vw; max-height: 68vh; object-fit: contain;
+border-radius: var(--radius-sm); box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.lightbox-caption { color: rgba(255,255,255,0.85); font-size: 14px; margin-top: 14px; text-align: center; max-width: 80vw; }
+.lightbox-counter { color: rgba(255,255,255,0.55); font-size: 12px; margin-top: 6px; letter-spacing: 0.5px; }
+.lightbox-close {
+position: absolute; top: max(16px, env(safe-area-inset-top)); right: 16px; z-index: 2;
+width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.12);
+color: #fff; display: flex; align-items: center; justify-content: center;
+}
+.lightbox-close svg { width: 20px; height: 20px; }
+.lightbox-nav {
+width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.12);
+color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+margin: 0 8px;
+}
+.lightbox-nav svg { width: 22px; height: 22px; }
+@media (max-width: 480px) {
+.lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); margin: 0; }
+.lightbox-nav.lightbox-prev { left: 8px; }
+.lightbox-nav.lightbox-next { right: 8px; }
+}
+
+/* Accessibility: visible focus ring for actionable / keyboard-operable elements */
+.module-card:focus-visible,
+.post-card:focus-visible,
+.faq-question:focus-visible,
+.zen-index-link:focus-visible,
+button:focus-visible,
+a:focus-visible {
+outline: 2px solid var(--accent);
+outline-offset: 2px;
+}
 </style>
 </head>
 <body>
 
 <!-- Loading Screen -->
 <div id="loading-screen">
-<div class="loader-logo" id="loader-logo"></div>
+<div class="loader-logo-wrap" id="loader-logo"></div>
 <div class="loader-spinner"></div>
 <div class="loader-text" id="loading-text">Cargando...</div>
 </div>
@@ -702,56 +1493,79 @@ pointer-events: none;
 <!-- Toast Notification -->
 <div class="toast" id="toast"></div>
 
-<!-- View: Welcome -->
-<div class="view active" id="welcome-view">
-<div class="welcome-bg" id="welcome-bg" style="background-image:url('')"></div>
-<div class="welcome-content">
+<!-- View: Onboarding (multi-step flow) -->
+<div class="view active" id="onboarding-flow">
+<!-- Progress bar -->
+<div class="ob-progress on-hero" id="ob-progress">
+<button class="ob-back" id="ob-back-btn" onclick="obBack()" aria-label="Atrás" style="visibility:hidden">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+</button>
+<span class="ob-brand" id="ob-brand" style="font-size:14px;font-weight:600;color:var(--primary);display:none"></span>
+<div class="ob-dots" id="ob-dots"></div>
+<button class="ob-skip" id="ob-skip-btn" onclick="obSkipToHome()" style="visibility:hidden"></button>
+</div>
+
+<!-- Step 0: Welcome hero -->
+<div class="ob-step ob-hero active" id="ob-step-0">
+<div class="ob-hero-bg" id="ob-hero-bg"></div>
+<div class="ob-hero-content">
 <div class="welcome-logo animate-in delay-1">
 <span class="logo-placeholder" id="welcome-logo-text">H</span>
 <img id="welcome-logo-img" class="hidden" src="" alt="Logo">
 </div>
 <h1 class="welcome-hotel-name animate-in delay-2" id="welcome-hotel-name">Hotel</h1>
-<p class="welcome-subtitle animate-in delay-3" id="welcome-subtitle">Bienvenido/a a tu experiencia de hospedaje</p>
-<button class="btn-primary animate-in delay-4" id="btn-start" onclick="goToOnboarding()">
-Comenzar
-</button>
+<p class="welcome-subtitle animate-in delay-3" id="welcome-subtitle"></p>
+<button class="btn-primary animate-in delay-4" id="btn-start" onclick="goStep(1)" style="margin-bottom:12px"></button>
+<button class="btn-ghost animate-in delay-4" id="btn-install-welcome" onclick="installPwa()" hidden></button>
 </div>
 </div>
 
-<!-- View: Onboarding -->
-<div class="view" id="onboarding-view">
-<div class="onboard-header">
-<h1>Información del huésped</h1>
-<p>Cuéntanos un poco sobre ti para personalizar tu estancia</p>
+<!-- Step 1: Value / what you'll find -->
+<div class="ob-step ob-value" id="ob-step-1">
+<div class="ob-value-head">
+<h2 id="ob-value-title"></h2>
+<p id="ob-value-sub"></p>
 </div>
-<div class="onboard-body">
-<form id="onboard-form" onsubmit="submitOnboarding(event)">
+<div class="ob-value-scroll" id="ob-value-scroll"></div>
+<div class="ob-value-dots" id="ob-value-dots"></div>
+<div class="ob-footer">
+<button class="btn-secondary" id="btn-value-next" onclick="obValueNext()"></button>
+</div>
+</div>
+
+<!-- Step 2: Capture form -->
+<div class="ob-step" id="ob-step-2">
+<div class="ob-form">
+<h2 id="onboard-title"></h2>
+<p class="ob-form-sub" id="onboard-subtitle"></p>
+<form id="onboard-form" onsubmit="submitOnboarding(event)" novalidate>
 <div class="form-group">
-<label class="form-label">Nombre completo *</label>
-<input type="text" class="form-input" id="field-name" required placeholder="Ej: María García" autocomplete="name">
+<label class="form-label" id="lbl-name"></label>
+<input type="text" class="form-input" id="field-name" required autocomplete="name">
+<div class="field-error" id="err-name"></div>
+</div>
+<div class="form-group">
+<label class="form-label" id="lbl-whatsapp"></label>
+<input type="tel" class="form-input" id="field-whatsapp" autocomplete="tel">
+<div class="field-hint" id="hint-whatsapp"></div>
+</div>
+<div class="form-group">
+<label class="form-label" id="lbl-email"></label>
+<input type="email" class="form-input" id="field-email" autocomplete="email">
+<div class="field-error" id="err-email"></div>
 </div>
 <div class="form-row">
 <div class="form-group">
-<label class="form-label">WhatsApp</label>
-<input type="tel" class="form-input" id="field-whatsapp" placeholder="+52 123 456 7890" autocomplete="tel">
-</div>
-<div class="form-group">
-<label class="form-label">Email</label>
-<input type="email" class="form-input" id="field-email" placeholder="correo@ejemplo.com" autocomplete="email">
-</div>
-</div>
-<div class="form-row">
-<div class="form-group">
-<label class="form-label">Check-in</label>
+<label class="form-label" id="lbl-checkin"></label>
 <input type="date" class="form-input" id="field-checkin">
 </div>
 <div class="form-group">
-<label class="form-label">Check-out</label>
+<label class="form-label" id="lbl-checkout"></label>
 <input type="date" class="form-input" id="field-checkout">
 </div>
 </div>
 <div class="form-group">
-<label class="form-label">Idioma</label>
+<label class="form-label" id="lbl-language"></label>
 <select class="form-input" id="field-language">
 <option value="es">Español</option>
 <option value="en">English</option>
@@ -759,86 +1573,143 @@ Comenzar
 </div>
 <div class="consent-group">
 <input type="checkbox" id="field-consent">
-<label for="field-consent">
-Acepto los términos y condiciones y la política de privacidad del hotel para recibir información sobre mi estancia.
-</label>
+<label for="field-consent" id="lbl-consent"></label>
 </div>
 </form>
 </div>
-<div class="onboard-footer">
-<button class="btn-primary" onclick="submitOnboarding(event)">
-Continuar
-</button>
+<div class="ob-footer">
+<button class="btn-secondary" onclick="submitOnboarding(event)" id="btn-onboard-submit"></button>
+<button class="ob-express" onclick="expressExplore()" id="btn-express"></button>
+</div>
+</div>
+
+<!-- Step 3: Closing -->
+<div class="ob-step ob-close" id="ob-step-3">
+<div class="ob-close-check">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+</div>
+<h2 id="ob-close-title"></h2>
+<p id="ob-close-sub"></p>
+<div class="ob-install-card" id="ob-close-install" hidden onclick="installPwa()" style="cursor:pointer">
+<div class="ob-install-card-icon">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+</div>
+<div>
+<h3 id="ob-close-install-title"></h3>
+<p id="ob-close-install-sub"></p>
+</div>
+</div>
+<div class="ob-push-optin" id="ob-push-optin" hidden>
+<div class="ob-push-optin-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+<div class="ob-push-optin-text">
+<h3 id="ob-push-optin-title"></h3>
+<p id="ob-push-optin-sub"></p>
+<div class="ob-push-optin-actions">
+<button class="push-btn-enable" id="ob-push-btn-enable" onclick="obEnablePush()"></button>
+<button class="push-btn-dismiss" id="ob-push-btn-dismiss" onclick="obDismissPush()"></button>
+</div>
+</div>
+</div>
+<button class="btn-secondary" onclick="enterApp()" id="btn-enter-app"></button>
 </div>
 </div>
 
 <!-- View: Home -->
 <div class="view" id="home-view">
-<div class="home-header" id="home-header">
-  <div class="home-brand">
+<div class="home-hero" id="home-hero">
+  <div class="home-hero-bg" id="home-hero-bg"></div>
+  <div class="home-hero-scrim" id="home-hero-scrim"></div>
+  <!-- Top bar: solo logo + idioma -->
+  <div class="home-hero-bar" id="home-header">
     <div class="home-brand-logo" id="home-brand-logo">
       <span class="logo-sm" id="home-logo-text">H</span>
       <img id="home-logo-img" class="hidden" src="" alt="Logo">
     </div>
-    <span class="home-brand-name" id="home-hotel-name"></span>
+    <button class="home-lang-btn" id="lang-toggle" onclick="toggleLanguageMenu()">EN</button>
   </div>
-  <button class="home-lang-btn" id="lang-toggle" onclick="toggleLanguage()">EN</button>
-</div>
-<div class="home-welcome" id="home-welcome">
-  <div class="home-welcome-accent"></div>
-  <h1 id="greeting-text">¡Hola!</h1>
-  <p id="greeting-sub">¿En qué podemos ayudarte hoy?</p>
+  <!-- Welcome content -->
+  <div class="home-welcome" id="home-welcome">
+    <div class="home-welcome-accent"></div>
+    <div class="home-hero-logo" id="home-hero-logo">
+      <span class="logo-sm2" id="home-hero-logo-text">H</span>
+      <img id="home-hero-logo-img" class="hidden" src="" alt="Logo" onerror="this.classList.add('hidden');document.getElementById('home-hero-logo-text')?.classList.remove('hidden')">
+    </div>
+    <h1 id="greeting-text">¡Hola!</h1>
+    <p class="hero-hotel-name" id="hero-hotel-name"></p>
+    <p id="greeting-sub">¿En qué podemos ayudarte hoy?</p>
+  </div>
 </div>
 
-<div class="home-content">
+<div class="home-content" id="home-content">
+<!-- Zen theme: index of anchors to visible sections -->
+<nav class="zen-index" id="zen-index" aria-label="Índice"></nav>
 <!-- PWA Install Banner -->
-<div class="pwa-banner hidden" id="pwa-banner">
+<div class="pwa-banner hidden" id="pwa-banner" onclick="installPwa()" style="cursor:pointer">
 <div class="pwa-banner-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="32" height="32"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
-<div class="pwa-banner-text">
-<h3 id="pwa-banner-title">Agregar a pantalla de inicio</h3>
-<p id="pwa-banner-sub">Accede más rápido desde tu pantalla</p>
+<div class="pwa-banner-text" style="cursor:pointer">
+<h3 id="pwa-banner-title"></h3>
+<p id="pwa-banner-sub"></p>
 </div>
-<button class="pwa-banner-close" onclick="dismissPwaBanner()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+<button class="pwa-banner-close" onclick="event.stopPropagation();dismissPwaBanner()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
 </div>
 
 <!-- Modules -->
+<div class="section-heading reveal" id="section-modules-heading" data-urban-tab="home explore">
+<div class="section-eyebrow" id="section-modules-eyebrow"></div>
 <div class="section-title" id="section-modules-title">Servicios</div>
-<div class="module-grid" id="module-grid"></div>
+<div class="section-hairline"></div>
+</div>
+<div class="module-grid reveal" id="module-grid" data-urban-tab="home explore">
+<div class="sk sk-card"></div><div class="sk sk-card"></div><div class="sk sk-card"></div><div class="sk sk-card"></div>
+</div>
+
+<!-- Push notifications opt-in -->
+<div class="push-card hidden reveal" id="push-optin-card" data-urban-tab="home info">
+<div class="push-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+<div class="push-card-text">
+<h3 id="push-card-title"></h3>
+<p id="push-card-sub"></p>
+<div class="push-card-actions">
+<button class="push-btn-enable" id="push-btn-enable" onclick="enablePushNotifications()"></button>
+<button class="push-btn-dismiss" id="push-btn-dismiss" onclick="dismissPushCard()"></button>
+</div>
+</div>
+</div>
 
 <!-- Promos -->
+<div class="section-heading reveal" id="section-promos-heading" data-urban-tab="home offers">
+<div class="section-eyebrow" id="section-promos-eyebrow"></div>
 <div class="section-title hidden" id="section-promos-title">Promociones</div>
-<div class="promo-scroll hidden" id="promo-scroll"></div>
+<div class="section-hairline"></div>
+</div>
+<div class="promo-scroll hidden reveal" id="promo-scroll" data-urban-tab="home offers"></div>
 
-<!-- Posts: Restaurants -->
-<div class="post-section hidden" id="post-section-restaurant">
-<div class="post-section-header">
-<div class="post-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg></div>
-<h2 id="post-title-restaurant">Restaurantes y Servicios</h2>
+<!-- Gallery -->
+<div class="section-heading hidden reveal" id="section-gallery-heading" data-urban-tab="home explore">
+<div class="section-eyebrow" id="section-gallery-eyebrow"></div>
+<div class="section-title" id="section-gallery-title">Galería</div>
+<div class="section-hairline"></div>
 </div>
-<div class="post-scroll" id="post-scroll-restaurant"></div>
-</div>
+<div class="gallery-strip hidden reveal" id="gallery-strip" data-urban-tab="home explore"></div>
 
-<!-- Posts: Tours -->
-<div class="post-section hidden" id="post-section-tour">
-<div class="post-section-header">
-<div class="post-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
-<h2 id="post-title-tour">Tours y Experiencias</h2>
-</div>
-<div class="post-scroll" id="post-scroll-tour"></div>
-</div>
-
-<!-- Posts: Guide -->
-<div class="post-section hidden" id="post-section-guide">
-<div class="post-section-header">
-<div class="post-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
-<h2 id="post-title-guide">Guía Turística</h2>
-</div>
-<div class="post-scroll" id="post-scroll-guide"></div>
-</div>
+<!-- Posts: dynamic sections (populated from data.sections; falls back to legacy restaurant/tour/guide) -->
+<div class="reveal" id="dynamic-post-sections" data-urban-tab="explore"></div>
 
 <!-- FAQ -->
+<div class="section-heading reveal" id="section-faq-heading" data-urban-tab="info">
+<div class="section-eyebrow" id="section-faq-eyebrow"></div>
 <div class="section-title" id="section-faq-title">Preguntas Frecuentes</div>
-<div class="faq-list" id="faq-list"></div>
+<div class="section-hairline"></div>
+</div>
+<div class="faq-list reveal" id="faq-list" data-urban-tab="info"></div>
+
+<!-- Urban Info tab: inline contact (bottom-nav replaces the floating contact dock) -->
+<div class="section-heading reveal" id="section-contact-heading" data-urban-tab="info">
+<div class="section-eyebrow" id="section-contact-eyebrow"></div>
+<div class="section-title" id="section-contact-title"></div>
+<div class="section-hairline"></div>
+</div>
+<div class="faq-list reveal" id="urban-contact-list" data-urban-tab="info"></div>
 </div>
 </div>
 
@@ -849,6 +1720,15 @@ Continuar
 <div class="detail-title" id="detail-title"></div>
 </div>
 <div class="detail-body" id="detail-body"></div>
+</div>
+
+<!-- View: Gallery -->
+<div class="view" id="gallery-view">
+<div class="detail-header">
+<button class="back-btn" onclick="goHome()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>
+<div class="detail-title" id="gallery-view-title">Galería</div>
+</div>
+<div class="gallery-grid" id="gallery-grid"></div>
 </div>
 
 <!-- View: Post Detail -->
@@ -881,23 +1761,74 @@ guestName: '',
 currentLang: 'es',
 deferredPrompt: null,
 pwaDismissed: false,
+currentStep: 0,
+isIOS: false,
+isStandalone: false,
+canInstall: false,
 };
+
+// ---------- Color helpers (theming) ----------
+function hexToRgb(hex) {
+if (!hex) return null;
+let h = hex.replace('#', '').trim();
+if (h.length === 3) h = h.split('').map(c => c + c).join('');
+if (h.length !== 6 || /[^0-9a-fA-F]/.test(h)) return null;
+const n = parseInt(h, 16);
+return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+function rgbStr(hex, fallback) {
+const c = hexToRgb(hex);
+return c ? `${c.r},${c.g},${c.b}` : fallback;
+}
+// Lighten a hex color toward white by amount [0..1]
+function lighten(hex, amount) {
+const c = hexToRgb(hex);
+if (!c) return hex;
+const mix = (ch) => Math.round(ch + (255 - ch) * amount);
+const to2 = (v) => v.toString(16).padStart(2, '0');
+return `#${to2(mix(c.r))}${to2(mix(c.g))}${to2(mix(c.b))}`;
+}
+function darken(hex, amount) {
+const c = hexToRgb(hex);
+if (!c) return hex;
+const mix = (ch) => Math.round(ch * (1 - amount));
+const to2 = (v) => v.toString(16).padStart(2, '0');
+return `#${to2(mix(c.r))}${to2(mix(c.g))}${to2(mix(c.b))}`;
+}
+// Relative luminance (WCAG) -> used to pick readable text color over a solid tile
+function luminance(hex) {
+const c = hexToRgb(hex);
+if (!c) return 0.5;
+const chan = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+return 0.2126 * chan(c.r) + 0.7152 * chan(c.g) + 0.0722 * chan(c.b);
+}
+// Resort theme: 4-color rotation derived from the hotel's effective palette (defaults or overrides)
+function resortPalette() {
+const cs = getComputedStyle(document.documentElement);
+const primary = (cs.getPropertyValue('--primary') || '#255C99').trim() || '#255C99';
+const accent = (cs.getPropertyValue('--accent') || '#E4572E').trim() || '#E4572E';
+const secondary = (cs.getPropertyValue('--secondary') || '#17A398').trim() || '#17A398';
+return [primary, accent, secondary, darken(primary, 0.18)];
+}
+function resortTileTextColor(bgHex) {
+return luminance(bgHex) > 0.6 ? '#20242C' : '#FFFFFF';
+}
 
 // ---------- i18n ----------
 const i18n = {
 es: {
 welcomeSubtitle: 'Bienvenido/a a tu experiencia de hospedaje',
-onboardTitle: 'Información del huésped',
-onboardSubtitle: 'Cuéntanos un poco sobre ti para personalizar tu estancia',
+onboardTitle: 'Cuéntanos de ti',
+onboardSubtitle: 'Personalizamos tu estancia con estos datos.',
 btnStart: 'Comenzar',
 btnContinue: 'Continuar',
-labelName: 'Nombre completo *',
+labelName: 'Nombre completo',
 labelWhatsapp: 'WhatsApp',
 labelEmail: 'Email',
 labelCheckin: 'Check-in',
 labelCheckout: 'Check-out',
 labelLanguage: 'Idioma',
-consentLabel: 'Acepto los términos y condiciones y la política de privacidad del hotel para recibir información sobre mi estancia.',
+consentLabel: 'Acepto los términos y la política de privacidad del hotel para recibir información sobre mi estancia.',
 greetingSub: '¿En qué podemos ayudarte hoy?',
 sectionModules: 'Servicios',
 sectionPromos: 'Promociones',
@@ -905,29 +1836,101 @@ sectionFaq: 'Preguntas Frecuentes',
 contactWhatsApp: 'WhatsApp',
 contactPhone: 'Teléfono',
 contactEmail: 'Email',
-pwaTitle: 'Agregar a pantalla de inicio',
-pwaSub: 'Accede más rápido desde tu pantalla',
+pwaTitle: 'Instala la app del hotel',
+pwaSub: 'Tenla a mano durante toda tu estancia',
 placeholderName: 'Ej: María García',
 placeholderWhatsapp: '+52 123 456 7890',
 placeholderEmail: 'correo@ejemplo.com',
 loading: 'Cargando...',
 errorTitle: 'Oops, algo salió mal',
 errorMsg: 'No pudimos cargar la información del hotel.',
+unavailableMsg: 'Esta guía no está disponible por el momento. Contacta directamente al hotel.',
 langToggle: 'EN',
+// Flow
+valueTitle: 'Todo tu hotel, aquí',
+valueSub: 'Esto es lo que encontrarás durante tu estancia.',
+btnContinueFlow: 'Continuar',
+btnExplore: 'Explorar la app',
+hintWhatsapp: 'Para enviarte tu confirmación y recomendaciones por WhatsApp.',
+errNameRequired: 'Por favor, ingresa tu nombre.',
+errEmailInvalid: 'Ingresa un email válido.',
+errConsent: 'Debes aceptar los términos para continuar.',
+express: 'Explorar sin registrarme',
+btnInstall: 'Instalar app',
+closeTitle: '¡Listo, {name}!',
+closeSub: 'Tu experiencia está lista. Encuentra WiFi, servicios y recomendaciones a un toque.',
+closeTitleGeneric: '¡Todo listo!',
+enterApp: 'Entrar a la app',
+installGesture: 'App instalada',
+badgeWelcome: 'Tu estancia, a un toque',
+// value fallbacks
+vWifi: 'WiFi y datos', vWifiSub: 'Conéctate al instante con las claves del hotel.',
+vServices: 'Servicios del hotel', vServicesSub: 'Horarios, amenidades y todo lo que necesitas.',
+vGuide: 'Guía local', vGuideSub: 'Restaurantes, tours y lo mejor de la zona.',
+vHelp: 'Ayuda inmediata', vHelpSub: 'Contacta al hotel por WhatsApp cuando quieras.',
+// iOS
+iosTitle: 'Instala esta app',
+iosSub: 'Añádela a tu pantalla de inicio para acceso rápido.',
+iosStep1: 'Toca el botón <b>Compartir</b> en la barra de Safari.',
+iosStep2: 'Elige <b>Añadir a pantalla de inicio</b>.',
+iosClose: 'Entendido',
+faqEmpty: 'No hay preguntas frecuentes disponibles.',
+// Hero greeting (contextual by hour)
+greetMorning: 'Buenos días',
+greetAfternoon: 'Buenas tardes',
+greetNight: 'Buenas noches',
+// Section eyebrows ("hilo del conserje")
+eyebrowModules: 'Guía del huésped',
+eyebrowPromos: 'Selección del hotel',
+eyebrowFaq: 'Ayuda rápida',
+// Push notifications opt-in
+pushCardTitle: 'No te pierdas nada',
+pushCardSub: 'Avisos del hotel directos a tu teléfono: eventos, horarios y ofertas.',
+pushBtnEnable: 'Activar avisos',
+pushBtnDismiss: 'Ahora no',
+pushToastOn: 'Avisos activados ✓',
+pushToastErr: 'No se pudo activar',
+// Post sections (i18n'd — previously hardcoded)
+postSectionRestaurant: 'Restaurantes y Servicios',
+postSectionTour: 'Tours y Experiencias',
+postSectionGuide: 'Guía Turística',
+postBadgeRestaurant: '🍽️ Restaurante',
+postBadgeTour: '🗺️ Tour',
+postBadgeGuide: '📍 Guía',
+noContent: 'Sin contenido disponible.',
+pwaBannerTitle: '📲 Agregar a pantalla de inicio',
+pwaBannerSub: 'Toca aquí para instalar la app y acceder rápido',
+// Urban bottom-nav tabs
+tabHome: 'Inicio',
+tabExplore: 'Servicios',
+tabOffers: 'Ofertas',
+tabInfo: 'Info',
+sectionContact: 'Contacto',
+// Zen theme anchor index
+zenIndexLabel: 'Índice',
+// Post-onboarding push opt-in (closing step)
+pushOptinTitle: 'No te pierdas nada',
+pushOptinSub: 'Activa los avisos del hotel: eventos, horarios y ofertas directo a tu teléfono.',
+// Gallery
+sectionGallery: 'Galería',
+eyebrowGallery: 'Momentos del hotel',
+galleryViewAll: 'Ver todas',
+galleryEmpty: 'Sin fotos disponibles.',
+langMenuLabel: 'Idioma',
 },
 en: {
 welcomeSubtitle: 'Welcome to your stay experience',
-onboardTitle: 'Guest Information',
-onboardSubtitle: 'Tell us a bit about yourself to personalize your stay',
+onboardTitle: 'Tell us about you',
+onboardSubtitle: 'We personalize your stay with these details.',
 btnStart: 'Get Started',
 btnContinue: 'Continue',
-labelName: 'Full name *',
+labelName: 'Full name',
 labelWhatsapp: 'WhatsApp',
 labelEmail: 'Email',
 labelCheckin: 'Check-in',
 labelCheckout: 'Check-out',
 labelLanguage: 'Language',
-consentLabel: 'I accept the terms and conditions and the hotel\'s privacy policy to receive information about my stay.',
+consentLabel: 'I accept the hotel\'s terms and privacy policy to receive information about my stay.',
 greetingSub: 'How can we help you today?',
 sectionModules: 'Services',
 sectionPromos: 'Promotions',
@@ -935,19 +1938,387 @@ sectionFaq: 'Frequently Asked Questions',
 contactWhatsApp: 'WhatsApp',
 contactPhone: 'Phone',
 contactEmail: 'Email',
-pwaTitle: 'Add to Home Screen',
-pwaSub: 'Access faster from your home screen',
+pwaTitle: 'Install the hotel app',
+pwaSub: 'Keep it handy throughout your stay',
 placeholderName: 'e.g. John Smith',
 placeholderWhatsapp: '+1 555 123 4567',
 placeholderEmail: 'email@example.com',
 loading: 'Loading...',
 errorTitle: 'Oops, something went wrong',
 errorMsg: 'We couldn\'t load the hotel information.',
+unavailableMsg: 'This guide is not available right now. Please contact the hotel directly.',
 langToggle: 'ES',
+// Flow
+valueTitle: 'Your whole hotel, here',
+valueSub: 'Here\'s what you\'ll find during your stay.',
+btnContinueFlow: 'Continue',
+btnExplore: 'Explore the app',
+hintWhatsapp: 'So we can send your confirmation and tips via WhatsApp.',
+errNameRequired: 'Please enter your name.',
+errEmailInvalid: 'Enter a valid email.',
+errConsent: 'You must accept the terms to continue.',
+express: 'Explore without signing up',
+btnInstall: 'Install app',
+closeTitle: 'All set, {name}!',
+closeSub: 'Your experience is ready. Find WiFi, services and tips in one tap.',
+closeTitleGeneric: 'All set!',
+enterApp: 'Enter the app',
+installGesture: 'App installed',
+badgeWelcome: 'Your stay, one tap away',
+vWifi: 'WiFi & data', vWifiSub: 'Connect instantly with the hotel\'s credentials.',
+vServices: 'Hotel services', vServicesSub: 'Hours, amenities and everything you need.',
+vGuide: 'Local guide', vGuideSub: 'Restaurants, tours and the best of the area.',
+vHelp: 'Instant help', vHelpSub: 'Reach the hotel via WhatsApp anytime.',
+iosTitle: 'Install this app',
+iosSub: 'Add it to your home screen for quick access.',
+iosStep1: 'Tap the <b>Share</b> button in the Safari bar.',
+iosStep2: 'Choose <b>Add to Home Screen</b>.',
+iosClose: 'Got it',
+faqEmpty: 'No FAQ available.',
+greetMorning: 'Good morning',
+greetAfternoon: 'Good afternoon',
+greetNight: 'Good evening',
+eyebrowModules: 'Guest guide',
+eyebrowPromos: "Hotel's picks",
+eyebrowFaq: 'Quick help',
+// Push notifications opt-in
+pushCardTitle: "Don't miss a thing",
+pushCardSub: 'Hotel updates straight to your phone: events, schedules and offers.',
+pushBtnEnable: 'Enable alerts',
+pushBtnDismiss: 'Not now',
+pushToastOn: 'Alerts on ✓',
+pushToastErr: "Couldn't enable",
+// Post sections (i18n'd — previously hardcoded)
+postSectionRestaurant: 'Restaurants & Services',
+postSectionTour: 'Tours & Experiences',
+postSectionGuide: 'Tourist Guide',
+postBadgeRestaurant: '🍽️ Restaurant',
+postBadgeTour: '🗺️ Tour',
+postBadgeGuide: '📍 Guide',
+noContent: 'No content available.',
+pwaBannerTitle: '📲 Add to home screen',
+pwaBannerSub: 'Tap here to install the app for quick access',
+// Urban bottom-nav tabs
+tabHome: 'Home',
+tabExplore: 'Explore',
+tabOffers: 'Offers',
+tabInfo: 'Info',
+sectionContact: 'Contact',
+// Zen theme anchor index
+zenIndexLabel: 'Index',
+// Post-onboarding push opt-in (closing step)
+pushOptinTitle: "Don't miss a thing",
+pushOptinSub: 'Turn on hotel alerts: events, schedules and offers straight to your phone.',
+// Gallery
+sectionGallery: 'Gallery',
+eyebrowGallery: 'Hotel moments',
+galleryViewAll: 'View all',
+galleryEmpty: 'No photos available.',
+langMenuLabel: 'Language',
+},
+fr: {
+welcomeSubtitle: 'Bienvenue dans votre expérience de séjour',
+onboardTitle: 'Parlez-nous de vous',
+onboardSubtitle: 'Nous personnalisons votre séjour avec ces informations.',
+btnStart: 'Commencer',
+btnContinue: 'Continuer',
+labelName: 'Nom complet',
+labelWhatsapp: 'WhatsApp',
+labelEmail: 'Email',
+labelCheckin: 'Arrivée',
+labelCheckout: 'Départ',
+labelLanguage: 'Langue',
+consentLabel: "J'accepte les conditions et la politique de confidentialité de l'hôtel pour recevoir des informations sur mon séjour.",
+greetingSub: "Comment pouvons-nous vous aider aujourd'hui ?",
+sectionModules: 'Services',
+sectionPromos: 'Promotions',
+sectionFaq: 'Questions fréquentes',
+contactWhatsApp: 'WhatsApp',
+contactPhone: 'Téléphone',
+contactEmail: 'Email',
+pwaTitle: "Installer l'application de l'hôtel",
+pwaSub: 'Gardez-la à portée de main pendant tout votre séjour',
+placeholderName: 'Ex : Jean Dupont',
+placeholderWhatsapp: '+33 6 12 34 56 78',
+placeholderEmail: 'email@exemple.com',
+loading: 'Chargement...',
+errorTitle: "Oups, une erreur s'est produite",
+errorMsg: "Nous n'avons pas pu charger les informations de l'hôtel.",
+unavailableMsg: "Ce guide n'est pas disponible pour le moment. Veuillez contacter l'hôtel directement.",
+langToggle: 'EN',
+valueTitle: 'Tout votre hôtel, ici',
+valueSub: 'Voici ce que vous trouverez pendant votre séjour.',
+btnContinueFlow: 'Continuer',
+btnExplore: "Explorer l'application",
+hintWhatsapp: 'Pour vous envoyer votre confirmation et nos recommandations via WhatsApp.',
+errNameRequired: 'Veuillez saisir votre nom.',
+errEmailInvalid: 'Saisissez un email valide.',
+errConsent: 'Vous devez accepter les conditions pour continuer.',
+express: "Explorer sans m'inscrire",
+btnInstall: "Installer l'application",
+closeTitle: 'Prêt, {name} !',
+closeSub: 'Votre expérience est prête. WiFi, services et recommandations en un instant.',
+closeTitleGeneric: 'Tout est prêt !',
+enterApp: "Entrer dans l'application",
+installGesture: 'Application installée',
+badgeWelcome: 'Votre séjour, en un instant',
+vWifi: 'WiFi et données', vWifiSub: "Connectez-vous instantanément avec les identifiants de l'hôtel.",
+vServices: "Services de l'hôtel", vServicesSub: 'Horaires, équipements et tout ce dont vous avez besoin.',
+vGuide: 'Guide local', vGuideSub: 'Restaurants, excursions et le meilleur de la région.',
+vHelp: 'Aide immédiate', vHelpSub: "Contactez l'hôtel via WhatsApp à tout moment.",
+iosTitle: 'Installer cette application',
+iosSub: "Ajoutez-la à votre écran d'accueil pour un accès rapide.",
+iosStep1: 'Appuyez sur le bouton <b>Partager</b> dans la barre Safari.',
+iosStep2: "Choisissez <b>Sur l'écran d'accueil</b>.",
+iosClose: 'Compris',
+faqEmpty: 'Aucune question fréquente disponible.',
+greetMorning: 'Bonjour',
+greetAfternoon: 'Bon après-midi',
+greetNight: 'Bonsoir',
+eyebrowModules: "Guide de l'hôte",
+eyebrowPromos: "Sélection de l'hôtel",
+eyebrowFaq: 'Aide rapide',
+pushCardTitle: 'Ne manquez rien',
+pushCardSub: "Actualités de l'hôtel directement sur votre téléphone : événements, horaires et offres.",
+pushBtnEnable: 'Activer les alertes',
+pushBtnDismiss: 'Pas maintenant',
+pushToastOn: 'Alertes activées ✓',
+pushToastErr: "Impossible d'activer",
+postSectionRestaurant: 'Restaurants et services',
+postSectionTour: 'Excursions et expériences',
+postSectionGuide: 'Guide touristique',
+postBadgeRestaurant: '🍽️ Restaurant',
+postBadgeTour: '🗺️ Excursion',
+postBadgeGuide: '📍 Guide',
+noContent: 'Aucun contenu disponible.',
+pwaBannerTitle: "📲 Ajouter à l'écran d'accueil",
+pwaBannerSub: "Appuyez ici pour installer l'application",
+tabHome: 'Accueil',
+tabExplore: 'Services',
+tabOffers: 'Offres',
+tabInfo: 'Infos',
+sectionContact: 'Contact',
+zenIndexLabel: 'Index',
+pushOptinTitle: 'Ne manquez rien',
+pushOptinSub: "Activez les alertes de l'hôtel : événements, horaires et offres directement sur votre téléphone.",
+sectionGallery: 'Galerie',
+eyebrowGallery: "Moments de l'hôtel",
+galleryViewAll: 'Voir tout',
+galleryEmpty: 'Aucune photo disponible.',
+langMenuLabel: 'Langue',
+},
+de: {
+welcomeSubtitle: 'Willkommen zu Ihrem Aufenthaltserlebnis',
+onboardTitle: 'Erzählen Sie uns von sich',
+onboardSubtitle: 'Wir passen Ihren Aufenthalt anhand dieser Angaben an.',
+btnStart: 'Loslegen',
+btnContinue: 'Weiter',
+labelName: 'Vollständiger Name',
+labelWhatsapp: 'WhatsApp',
+labelEmail: 'E-Mail',
+labelCheckin: 'Anreise',
+labelCheckout: 'Abreise',
+labelLanguage: 'Sprache',
+consentLabel: 'Ich akzeptiere die AGB und Datenschutzrichtlinie des Hotels, um Informationen zu meinem Aufenthalt zu erhalten.',
+greetingSub: 'Wie können wir Ihnen heute helfen?',
+sectionModules: 'Services',
+sectionPromos: 'Angebote',
+sectionFaq: 'Häufige Fragen',
+contactWhatsApp: 'WhatsApp',
+contactPhone: 'Telefon',
+contactEmail: 'E-Mail',
+pwaTitle: 'Hotel-App installieren',
+pwaSub: 'Immer griffbereit während Ihres Aufenthalts',
+placeholderName: 'z. B. Max Mustermann',
+placeholderWhatsapp: '+49 151 23456789',
+placeholderEmail: 'email@beispiel.com',
+loading: 'Wird geladen...',
+errorTitle: 'Ups, etwas ist schiefgelaufen',
+errorMsg: 'Die Hotelinformationen konnten nicht geladen werden.',
+unavailableMsg: 'Dieser Guide ist derzeit nicht verfügbar. Bitte kontaktieren Sie das Hotel direkt.',
+langToggle: 'EN',
+valueTitle: 'Ihr ganzes Hotel, hier',
+valueSub: 'Das erwartet Sie während Ihres Aufenthalts.',
+btnContinueFlow: 'Weiter',
+btnExplore: 'App erkunden',
+hintWhatsapp: 'Damit wir Ihnen Bestätigung und Tipps per WhatsApp senden können.',
+errNameRequired: 'Bitte geben Sie Ihren Namen ein.',
+errEmailInvalid: 'Geben Sie eine gültige E-Mail-Adresse ein.',
+errConsent: 'Sie müssen die Bedingungen akzeptieren, um fortzufahren.',
+express: 'Ohne Anmeldung erkunden',
+btnInstall: 'App installieren',
+closeTitle: 'Fertig, {name}!',
+closeSub: 'Ihr Erlebnis ist bereit. WLAN, Services und Empfehlungen mit einem Klick.',
+closeTitleGeneric: 'Alles bereit!',
+enterApp: 'App öffnen',
+installGesture: 'App installiert',
+badgeWelcome: 'Ihr Aufenthalt, einen Klick entfernt',
+vWifi: 'WLAN & Daten', vWifiSub: 'Verbinden Sie sich sofort mit den Zugangsdaten des Hotels.',
+vServices: 'Hotel-Services', vServicesSub: 'Öffnungszeiten, Annehmlichkeiten und alles, was Sie brauchen.',
+vGuide: 'Lokaler Guide', vGuideSub: 'Restaurants, Touren und das Beste aus der Umgebung.',
+vHelp: 'Sofortige Hilfe', vHelpSub: 'Erreichen Sie das Hotel jederzeit über WhatsApp.',
+iosTitle: 'Diese App installieren',
+iosSub: 'Zum Startbildschirm hinzufügen für schnellen Zugriff.',
+iosStep1: 'Tippen Sie auf <b>Teilen</b> in der Safari-Leiste.',
+iosStep2: 'Wählen Sie <b>Zum Home-Bildschirm</b>.',
+iosClose: 'Verstanden',
+faqEmpty: 'Keine häufigen Fragen verfügbar.',
+greetMorning: 'Guten Morgen',
+greetAfternoon: 'Guten Tag',
+greetNight: 'Guten Abend',
+eyebrowModules: 'Gästeführer',
+eyebrowPromos: 'Hotelauswahl',
+eyebrowFaq: 'Schnelle Hilfe',
+pushCardTitle: 'Verpassen Sie nichts',
+pushCardSub: 'Hotel-Updates direkt auf Ihr Telefon: Events, Zeiten und Angebote.',
+pushBtnEnable: 'Benachrichtigungen aktivieren',
+pushBtnDismiss: 'Nicht jetzt',
+pushToastOn: 'Benachrichtigungen aktiviert ✓',
+pushToastErr: 'Aktivierung fehlgeschlagen',
+postSectionRestaurant: 'Restaurants & Services',
+postSectionTour: 'Touren & Erlebnisse',
+postSectionGuide: 'Reiseführer',
+postBadgeRestaurant: '🍽️ Restaurant',
+postBadgeTour: '🗺️ Tour',
+postBadgeGuide: '📍 Guide',
+noContent: 'Kein Inhalt verfügbar.',
+pwaBannerTitle: '📲 Zum Startbildschirm hinzufügen',
+pwaBannerSub: 'Tippen Sie hier, um die App zu installieren',
+tabHome: 'Start',
+tabExplore: 'Services',
+tabOffers: 'Angebote',
+tabInfo: 'Info',
+sectionContact: 'Kontakt',
+zenIndexLabel: 'Index',
+pushOptinTitle: 'Verpassen Sie nichts',
+pushOptinSub: 'Aktivieren Sie Hotel-Benachrichtigungen: Events, Zeiten und Angebote direkt auf Ihr Telefon.',
+sectionGallery: 'Galerie',
+eyebrowGallery: 'Momente des Hotels',
+galleryViewAll: 'Alle ansehen',
+galleryEmpty: 'Keine Fotos verfügbar.',
+langMenuLabel: 'Sprache',
+},
+pt: {
+welcomeSubtitle: 'Bem-vindo à sua experiência de estadia',
+onboardTitle: 'Fale-nos sobre você',
+onboardSubtitle: 'Personalizamos sua estadia com estes dados.',
+btnStart: 'Começar',
+btnContinue: 'Continuar',
+labelName: 'Nome completo',
+labelWhatsapp: 'WhatsApp',
+labelEmail: 'Email',
+labelCheckin: 'Check-in',
+labelCheckout: 'Check-out',
+labelLanguage: 'Idioma',
+consentLabel: 'Aceito os termos e a política de privacidade do hotel para receber informações sobre minha estadia.',
+greetingSub: 'Como podemos ajudar você hoje?',
+sectionModules: 'Serviços',
+sectionPromos: 'Promoções',
+sectionFaq: 'Perguntas Frequentes',
+contactWhatsApp: 'WhatsApp',
+contactPhone: 'Telefone',
+contactEmail: 'Email',
+pwaTitle: 'Instale o app do hotel',
+pwaSub: 'Tenha-o à mão durante toda a sua estadia',
+placeholderName: 'Ex: João Silva',
+placeholderWhatsapp: '+55 11 91234 5678',
+placeholderEmail: 'email@exemplo.com',
+loading: 'Carregando...',
+errorTitle: 'Ops, algo deu errado',
+errorMsg: 'Não foi possível carregar as informações do hotel.',
+unavailableMsg: 'Este guia não está disponível no momento. Entre em contato diretamente com o hotel.',
+langToggle: 'EN',
+valueTitle: 'Todo o seu hotel, aqui',
+valueSub: 'Isto é o que você vai encontrar durante sua estadia.',
+btnContinueFlow: 'Continuar',
+btnExplore: 'Explorar o app',
+hintWhatsapp: 'Para enviar sua confirmação e recomendações via WhatsApp.',
+errNameRequired: 'Por favor, insira seu nome.',
+errEmailInvalid: 'Insira um email válido.',
+errConsent: 'Você deve aceitar os termos para continuar.',
+express: 'Explorar sem me cadastrar',
+btnInstall: 'Instalar app',
+closeTitle: 'Tudo pronto, {name}!',
+closeSub: 'Sua experiência está pronta. Wi-Fi, serviços e recomendações em um toque.',
+closeTitleGeneric: 'Tudo pronto!',
+enterApp: 'Entrar no app',
+installGesture: 'App instalado',
+badgeWelcome: 'Sua estadia, a um toque',
+vWifi: 'Wi-Fi e dados', vWifiSub: 'Conecte-se instantaneamente com as credenciais do hotel.',
+vServices: 'Serviços do hotel', vServicesSub: 'Horários, comodidades e tudo o que você precisa.',
+vGuide: 'Guia local', vGuideSub: 'Restaurantes, passeios e o melhor da região.',
+vHelp: 'Ajuda imediata', vHelpSub: 'Fale com o hotel pelo WhatsApp a qualquer momento.',
+iosTitle: 'Instale este app',
+iosSub: 'Adicione-o à tela inicial para acesso rápido.',
+iosStep1: 'Toque no botão <b>Compartilhar</b> na barra do Safari.',
+iosStep2: 'Escolha <b>Adicionar à Tela de Início</b>.',
+iosClose: 'Entendi',
+faqEmpty: 'Nenhuma pergunta frequente disponível.',
+greetMorning: 'Bom dia',
+greetAfternoon: 'Boa tarde',
+greetNight: 'Boa noite',
+eyebrowModules: 'Guia do hóspede',
+eyebrowPromos: 'Seleção do hotel',
+eyebrowFaq: 'Ajuda rápida',
+pushCardTitle: 'Não perca nada',
+pushCardSub: 'Novidades do hotel direto no seu celular: eventos, horários e ofertas.',
+pushBtnEnable: 'Ativar avisos',
+pushBtnDismiss: 'Agora não',
+pushToastOn: 'Avisos ativados ✓',
+pushToastErr: 'Não foi possível ativar',
+postSectionRestaurant: 'Restaurantes e Serviços',
+postSectionTour: 'Passeios e Experiências',
+postSectionGuide: 'Guia Turístico',
+postBadgeRestaurant: '🍽️ Restaurante',
+postBadgeTour: '🗺️ Passeio',
+postBadgeGuide: '📍 Guia',
+noContent: 'Nenhum conteúdo disponível.',
+pwaBannerTitle: '📲 Adicionar à tela inicial',
+pwaBannerSub: 'Toque aqui para instalar o app',
+tabHome: 'Início',
+tabExplore: 'Serviços',
+tabOffers: 'Ofertas',
+tabInfo: 'Info',
+sectionContact: 'Contato',
+zenIndexLabel: 'Índice',
+pushOptinTitle: 'Não perca nada',
+pushOptinSub: 'Ative os avisos do hotel: eventos, horários e ofertas direto no seu celular.',
+sectionGallery: 'Galeria',
+eyebrowGallery: 'Momentos do hotel',
+galleryViewAll: 'Ver todas',
+galleryEmpty: 'Nenhuma foto disponível.',
+langMenuLabel: 'Idioma',
 }
 };
 
-function t(key) { return (i18n[state.currentLang] || i18n.es)[key] || key; }
+function t(key, vars) {
+let s = (i18n[state.currentLang] || i18n.es)[key];
+if (s == null) s = key;
+if (vars) for (const k in vars) s = s.replace('{' + k + '}', vars[k]);
+return s;
+}
+function detectLang() {
+const nav = (navigator.language || 'es').slice(0, 2).toLowerCase();
+return i18n[nav] ? nav : 'es';
+}
+// Per-item content translation: item.i18n = { en: {title, subtitle, content_html}, ... }
+// Falls back to the item's base field when no translation exists for the active language.
+function ct(item, field) {
+if (!item) return '';
+const tr = item.i18n && item.i18n[state.currentLang];
+if (tr && tr[field] != null && tr[field] !== '') return tr[field];
+return item[field] || '';
+}
+const LANG_NAMES = { es: 'Español', en: 'English', fr: 'Français', de: 'Deutsch', pt: 'Português' };
+// Hotel-supported languages (csv on hotel.supported_languages); defaults to es+en for graceful degrade.
+function supportedLangs() {
+const h = state.hotel || {};
+// El backend lo sirve como lista; se acepta también csv por compat
+const src = h.supported_languages || 'es,en';
+const list = Array.isArray(src) ? src : String(src).split(',');
+const raw = list.map(s => String(s).trim().toLowerCase()).filter(l => i18n[l]);
+return raw.length ? raw : ['es', 'en'];
+}
 
 // ---------- Init ----------
 document.addEventListener('DOMContentLoaded', async () => {
@@ -960,45 +2331,94 @@ showError();
 return;
 }
 
+// Inject per-hotel manifest
+const mLink = document.getElementById('manifest-link');
+if (mLink) mLink.setAttribute('href', `/g/${state.slug}/manifest.webmanifest`);
+
 // Register service worker
 registerSW();
 
-// Set default lang
-state.currentLang = localStorage.getItem(`hf_lang_${state.slug}`) || 'es';
+// Detect install state / platform
+detectPlatform();
 
-// Check session
-state.guestLeadId = sessionStorage.getItem(`hf_lead_${state.slug}`);
-state.guestName = sessionStorage.getItem(`hf_name_${state.slug}`);
+// Language priority: saved > (hotel default applied later) > browser
+const savedLang = localStorage.getItem(`hf_lang_${state.slug}`);
+state.currentLang = savedLang || detectLang();
+
+// Check localStorage for existing guest data
+state.guestLeadId = localStorage.getItem(`hf_lead_${state.slug}`);
+state.guestName = localStorage.getItem(`hf_name_${state.slug}`);
+
+// PWA install listener (Android/Chromium)
+window.addEventListener('beforeinstallprompt', (e) => {
+e.preventDefault();
+state.deferredPrompt = e;
+state.canInstall = true;
+refreshInstallUI();
+logInstallEvent('prompt_shown');
+});
+window.addEventListener('appinstalled', () => {
+state.isStandalone = true;
+state.canInstall = false;
+state.deferredPrompt = null;
+hideAllInstallUI();
+logInstallEvent('installed');
+showToast(t('installGesture'));
+});
 
 // Load hotel data
 await loadHotelData();
 
-// PWA install listener
-window.addEventListener('beforeinstallprompt', (e) => {
-e.preventDefault();
-state.deferredPrompt = e;
-if (!state.pwaDismissed) {
-document.getElementById('pwa-banner').classList.remove('hidden');
-}
-});
-
-// If guest already onboarded, go to home
+// If guest already onboarded, go to home; else start the flow
 if (state.guestLeadId && state.guestName) {
 showView('home-view');
 renderHome();
 logEvent('page_view');
+maybeShowPendingPopup();
+initScrollReveal();
 } else {
-showView('welcome-view');
 renderWelcome();
+renderValueStep();
+showView('onboarding-flow');
+goStep(0, true);
+logEvent('page_view');
 }
+refreshInstallUI();
 
 // Remove loading screen
 setTimeout(() => {
 const ls = document.getElementById('loading-screen');
+if (!ls) return;
 ls.classList.add('fade-out');
 setTimeout(() => ls.remove(), 600);
-}, 300);
+}, 260);
 });
+
+// ---------- Platform / install detection ----------
+function detectPlatform() {
+const ua = navigator.userAgent || navigator.vendor || '';
+state.isIOS = /iphone|ipad|ipod/i.test(ua) ||
+(navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+state.isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+window.navigator.standalone === true;
+}
+function pwaDismissActive() {
+try {
+const raw = localStorage.getItem(`hf_pwa_dismissed_${state.slug}`);
+if (!raw) return false;
+const until = parseInt(raw, 10);
+if (isNaN(until)) return false;
+if (Date.now() > until) { localStorage.removeItem(`hf_pwa_dismissed_${state.slug}`); return false; }
+return true;
+} catch (e) { return false; }
+}
+// Whether we should surface any install invitation at all
+function installAvailable() {
+const h = state.hotel || {};
+if (h.pwa_enabled === false) return false;
+if (state.isStandalone) return false;
+return state.canInstall || state.isIOS;
+}
 
 // ---------- Service Worker ----------
 function registerSW() {
@@ -1022,30 +2442,119 @@ return null;
 }
 }
 
+// ---------- Theming (theme layout + full brand -> CSS vars) ----------
+// Priority (low -> high): (1) canonical theme tokens, (2) legacy alias palette
+// (ocean/sunset/etc, if the hotel's raw theme value is a legacy alias),
+// (3) explicit hotel brand overrides (primary_color, accent_color, ...).
+function applyTheme(h) {
+h = h || {};
+const root = document.documentElement.style;
+const themeName = resolveTheme(h);
+document.body.dataset.theme = themeName;
+const tok = THEME_TOKENS[themeName];
+
+// 1) Base tokens from the canonical theme
+let primary = tok.primary, secondary = tok.secondary, accent = tok.accent,
+bg = tok.bg, bgSec = tok.bgSec, textColor = tok.text,
+fontDisplay = tok.fontDisplay, fontBody = tok.fontBody;
+root.setProperty('--radius', tok.radius);
+root.setProperty('--radius-sm', tok.radiusSm);
+root.setProperty('--shadow', tok.shadow);
+
+// 2) Legacy alias palette (ocean, sunset, forest, minimal, luxury, rose, royal)
+const rawTheme = (h.theme || '').toString().trim().toLowerCase();
+if (THEME_ALIASES[rawTheme] && themes[rawTheme]) {
+const preset = themes[rawTheme];
+primary = preset.primary; secondary = preset.secondary; accent = preset.accent;
+bg = preset.bg; bgSec = preset.bgSec; textColor = preset.text;
+}
+
+// 3) Explicit hotel brand overrides (highest priority, same fields as before)
+primary = h.primary_color || primary;
+secondary = h.secondary_color || secondary;
+accent = h.accent_color || accent;
+bg = h.bg_color || bg;
+bgSec = h.bg_secondary || bgSec;
+textColor = h.text_color || textColor;
+
+root.setProperty('--primary', primary);
+root.setProperty('--primary-light', lighten(primary, 0.14));
+root.setProperty('--primary-rgb', rgbStr(primary, '31,27,22'));
+root.setProperty('--secondary', secondary);
+root.setProperty('--secondary-rgb', rgbStr(secondary, '201,169,97'));
+root.setProperty('--accent', accent);
+root.setProperty('--accent-hover', darken(accent, 0.10));
+root.setProperty('--accent-rgb', rgbStr(accent, '201,169,97'));
+root.setProperty('--bg', bg);
+root.setProperty('--bg-rgb', rgbStr(bg, '244,239,230'));
+root.setProperty('--bg-card', bg);
+root.setProperty('--bg-secondary', bgSec);
+root.setProperty('--text', textColor);
+root.setProperty('--text-light', lighten(textColor, 0.42));
+root.setProperty('--border', lighten(textColor, 0.86));
+
+// 6) Fonts: theme display/body fonts, then explicit hotel font override
+root.setProperty('--font-serif', fontDisplay);
+root.setProperty('--font-display', fontDisplay);
+root.setProperty('--font-sans', fontBody);
+const displayFamilyName = fontDisplay.split(',')[0].replace(/['"]/g, '').trim();
+if (displayFamilyName) loadWebFont(displayFamilyName);
+
+// "Inter" es el default del modelo, no un override del hotel: dejarlo pasar
+// permite que el body font del theme (p. ej. Nunito en resort) se aplique.
+if (h.font_family && h.font_family.trim().toLowerCase() !== 'inter') {
+const fam = /['",]/.test(h.font_family) ? h.font_family : `'${h.font_family}'`;
+root.setProperty('--font-family', `${fam}, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif`);
+loadWebFont(h.font_family);
+} else {
+root.setProperty('--font-family', fontBody);
+const bodyFamilyName = fontBody.split(',')[0].replace(/['"]/g, '').trim();
+if (bodyFamilyName) loadWebFont(bodyFamilyName);
+}
+
+// 7) Native UI theme color
+const metaTheme = document.querySelector('meta[name="theme-color"]');
+if (metaTheme) metaTheme.content = primary;
+}
+
+// Load a Google Font family on demand (best-effort; ignores failures)
+function loadWebFont(family) {
+if (!family || family.toLowerCase() === 'inter') return;
+try {
+const id = 'hf-font-' + family.replace(/\s+/g, '-').toLowerCase();
+if (document.getElementById(id)) return;
+const link = document.createElement('link');
+link.id = id;
+link.rel = 'stylesheet';
+link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}:wght@300;400;500;600;700&display=swap`;
+document.head.appendChild(link);
+} catch (e) {}
+}
+
 async function loadHotelData() {
 const data = await apiFetch(`/api/guest/${state.slug}`);
 if (!data) { showError(); return; }
+if (data.trial_expired) { showUnavailable(data.hotel || {}); return; }
 state.hotel = data.hotel || data;
 state.modules = data.modules || [];
 state.faqs = data.faqs || [];
 state.promos = data.promos || [];
 state.posts = data.posts || [];
-if (state.hotel.primary_color) {
-document.documentElement.style.setProperty('--primary', state.hotel.primary_color);
-}
-if (state.hotel.accent_color) {
-document.documentElement.style.setProperty('--accent', state.hotel.accent_color);
+state.sections = Array.isArray(data.sections) ? data.sections : [];
+state.gallery = Array.isArray(data.gallery) ? data.gallery : [];
+
+// If no saved language, honor the hotel's default_language
+if (!localStorage.getItem(`hf_lang_${state.slug}`) && state.hotel.default_language && i18n[state.hotel.default_language]) {
+state.currentLang = state.hotel.default_language;
 }
 
-// Apply theme preset
-if (state.hotel.theme && themes[state.hotel.theme]) {
-const t = themes[state.hotel.theme];
-document.documentElement.style.setProperty('--primary', t.primary);
-document.documentElement.style.setProperty('--primary-light', t.secondary);
-document.documentElement.style.setProperty('--accent', t.accent);
-document.documentElement.style.setProperty('--bg', t.bg);
-document.documentElement.style.setProperty('--bg-secondary', t.bgSec);
-document.documentElement.style.setProperty('--text', t.text);
+applyTheme(state.hotel);
+
+// Set onboarding brand name
+const obBrand = document.getElementById('ob-brand');
+if (obBrand && state.hotel && state.hotel.nombre) {
+obBrand.textContent = state.hotel.nombre;
+obBrand.style.display = 'inline';
 }
 
 // Set loader logo
@@ -1058,25 +2567,23 @@ loaderLogo.innerHTML = `<img src="${h.logo_url}" alt="Logo">`;
 loaderLogo.innerHTML = `<span class="loader-initial">${(h.nombre || 'H').charAt(0)}</span>`;
 }
 }
+// Set loader text
+const loadingText = document.getElementById('loading-text');
+if (loadingText && h.nombre) loadingText.textContent = h.nombre;
 
 // Set page title
-document.title = h.name || 'HostelFlow';
+document.title = h.nombre || h.name || 'HostelFlow';
 
-// Update manifest theme_color
-const manifestThemeColor = h.primary_color || (themes[h.theme] && themes[h.theme].primary) || '#1E3A5F';
-const metaTheme = document.querySelector('meta[name="theme-color"]');
-if (metaTheme) metaTheme.content = manifestThemeColor;
+// Load theme CSS if assigned
+if (data.theme_css_url) {
+  const themeLink = document.getElementById('theme-css');
+  if (themeLink) themeLink.href = data.theme_css_url;
+}
 
-// Check for popups
+// Store active popup as pending; it is shown only once the guest reaches
+// home, never over the premium onboarding experience.
 if (data.popups && data.popups.length > 0) {
-const activePopup = data.popups.find(p => p.is_active);
-if (activePopup) {
-if (activePopup.trigger_type === 'after_seconds') {
-setTimeout(() => showPopup(activePopup), (activePopup.trigger_seconds || 3) * 1000);
-} else {
-setTimeout(() => showPopup(activePopup), 1500);
-}
-}
+state.pendingPopup = data.popups.find(p => p.is_active) || null;
 }
 
 // Inject custom CSS
@@ -1086,12 +2593,6 @@ style.textContent = h.custom_css;
 document.head.appendChild(style);
 }
 
-// Inject custom JS
-if (h.custom_js) {
-const script = document.createElement('script');
-script.textContent = h.custom_js;
-document.body.appendChild(script);
-}
 }
 
 // ---------- Navigation ----------
@@ -1101,14 +2602,108 @@ v.classList.remove('active', 'slide-out');
 });
 const target = document.getElementById(viewId);
 target.classList.add('active');
+target.scrollTop = 0;
+state.activeView = viewId;
+document.body.dataset.view = viewId; // el CSS de theme lo usa (p. ej. bottom-nav solo en home)
 window.scrollTo(0, 0);
+if (viewId === 'home-view') {
+  const hero = document.getElementById('home-hero');
+  if (hero) hero.scrollTop = 0;
+}
 updateContactBar();
 }
 
-function goToOnboarding() {
-showView('onboarding-view');
-logEvent('page_view');
+// ---------- Onboarding multi-step flow ----------
+// Steps: 0=welcome hero, 1=value, 2=capture (optional), 3=closing
+function obSteps() {
+// Build the ordered list of active step indices (skip capture if disabled)
+const captureOn = !(state.hotel && state.hotel.onboarding_enabled === false);
+return captureOn ? [0, 1, 2, 3] : [0, 1, 3];
 }
+
+function goStep(idx, instant) {
+const steps = document.querySelectorAll('#onboarding-flow .ob-step');
+steps.forEach(s => s.classList.remove('active', 'prev'));
+const target = document.getElementById('ob-step-' + idx);
+if (!target) return;
+// Mark lower-index steps as prev for direction
+steps.forEach(s => {
+const n = parseInt(s.id.replace('ob-step-', ''), 10);
+if (n < idx) s.classList.add('prev');
+});
+target.classList.add('active');
+target.scrollTop = 0;
+state.currentStep = idx;
+if (instant) {
+target.style.transition = 'none';
+requestAnimationFrame(() => { target.style.transition = ''; });
+}
+updateObProgress();
+}
+
+function updateObProgress() {
+const prog = document.getElementById('ob-progress');
+const order = obSteps();
+const pos = order.indexOf(state.currentStep);
+const onHero = state.currentStep === 0;
+prog.classList.toggle('on-hero', onHero);
+// Dots
+const dots = document.getElementById('ob-dots');
+dots.innerHTML = order.map((_, i) =>
+`<span class="ob-dot ${i === pos ? 'active' : (i < pos ? 'done' : '')}"></span>`
+).join('');
+// Back button: hidden on first step
+const backBtn = document.getElementById('ob-back-btn');
+backBtn.style.visibility = pos > 0 ? 'visible' : 'hidden';
+// Skip button: show on value + capture steps
+const skipBtn = document.getElementById('ob-skip-btn');
+const showSkip = state.currentStep === 1 || state.currentStep === 2;
+skipBtn.style.visibility = showSkip ? 'visible' : 'hidden';
+skipBtn.textContent = t('btnExplore');
+}
+
+function obBack() {
+const order = obSteps();
+const pos = order.indexOf(state.currentStep);
+if (pos > 0) goStep(order[pos - 1]);
+}
+
+function obValueNext() {
+const order = obSteps();
+const pos = order.indexOf(state.currentStep);
+if (pos < order.length - 1) goStep(order[pos + 1]);
+}
+
+function obSkipToHome() { expressExplore(); }
+
+// Express path: explore without registering
+function expressExplore() {
+state.guestName = state.guestName || '';
+logEvent('onboarding_skipped');
+enterHome();
+}
+
+function enterApp() { enterHome(); }
+
+function enterHome() {
+showView('home-view');
+renderHome();
+logEvent('page_view');
+maybeShowPendingPopup();
+initScrollReveal();
+}
+
+function maybeShowPendingPopup() {
+const popup = state.pendingPopup;
+if (!popup || state.popupShown) return;
+state.popupShown = true;
+const delay = popup.trigger_type === 'after_seconds'
+? (popup.trigger_seconds || 3) * 1000
+: 1200;
+setTimeout(() => { if (state.activeView === 'home-view') showPopup(popup); }, delay);
+}
+
+function goToOnboarding() { goStep(0); }
 
 function goHome() {
 showView('home-view');
@@ -1119,47 +2714,48 @@ function showModuleDetail(moduleId) {
 const mod = state.modules.find(m => m.id == moduleId);
 if (!mod) return;
 showView('detail-view');
-document.getElementById('detail-title').textContent = mod.title || '';
+const modTitle = ct(mod, 'title');
+document.getElementById('detail-title').textContent = modTitle;
 const body = document.getElementById('detail-body');
 let html = '';
-if (mod.audience_stage && mod.audience_stage !== 'all') {
-const stageClass = mod.audience_stage.replace(/\s+/g, '-');
-const stageLabel = { 'pre-arrival': 'Pre-llegada', 'in-stay': 'Durante estancia', 'pre-checkout': 'Pre-checkout' };
-html += `<div class="detail-stage-badge ${stageClass}">${stageLabel[mod.audience_stage] || mod.audience_stage}</div>`;
+const st = stageInfo(mod.audience_stage);
+if (st) {
+html += `<div class="detail-stage-badge ${st.cls}">${st.label}</div>`;
 }
 if (mod.image_url) {
-html += `<img src="${escapeHtml(mod.image_url)}" alt="${escapeHtml(mod.title || '')}">`;
+html += `<img src="${escapeHtml(mod.image_url)}" alt="${escapeHtml(modTitle)}">`;
 }
-if (mod.subtitle) {
-html += `<p style="color:var(--text-light);margin-bottom:20px;font-size:15px;">${escapeHtml(mod.subtitle)}</p>`;
+const modSub = ct(mod, 'subtitle');
+if (modSub) {
+html += `<p style="color:var(--text-light);margin-bottom:20px;font-size:15px;">${escapeHtml(modSub)}</p>`;
 }
-html += mod.content_html || '<p>Sin contenido disponible.</p>';
+html += ct(mod, 'content_html') || `<p>${t('noContent')}</p>`;
 body.innerHTML = html;
-logEvent('module_view', { module_id: moduleId, module_title: mod.title });
+logEvent('module_open', { page_view: modTitle });
 }
 
 function showPostDetail(postId) {
 const post = state.posts.find(p => p.id == postId);
 if (!post) return;
 showView('post-detail-view');
-document.getElementById('post-detail-title').textContent = post.title || '';
+const postTitle = ct(post, 'title');
+document.getElementById('post-detail-title').textContent = postTitle;
 
 // Hero image
 const heroEl = document.getElementById('post-detail-hero');
 if (post.image_url) {
-heroEl.innerHTML = `<img class="post-detail-hero" src="${escapeHtml(post.image_url)}" alt="${escapeHtml(post.title || '')}">`;
+heroEl.innerHTML = `<img class="post-detail-hero" src="${escapeHtml(post.image_url)}" alt="${escapeHtml(postTitle)}">`;
 } else {
 heroEl.innerHTML = `<div class="post-detail-hero" style="background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-size:72px">${post.icon || '📄'}</div>`;
 }
 
-// Meta (section badge)
-const sectionLabels = { restaurant: '🍽️ Restaurante', tour: '🗺️ Tour', guide: '📍 Guía' };
+// Meta (section badge — dynamic section name, degrades to the legacy hardcoded labels)
 document.getElementById('post-detail-meta').innerHTML = `
-<div class="post-detail-section-badge">${sectionLabels[post.section] || post.section}</div>
+<div class="post-detail-section-badge">${escapeHtml(sectionLabelFor(post.section))}</div>
 `;
 
 // Content
-document.getElementById('post-detail-content').innerHTML = post.content_html || '<p>Sin contenido disponible.</p>';
+document.getElementById('post-detail-content').innerHTML = ct(post, 'content_html') || `<p>${t('noContent')}</p>`;
 
 // CTA button
 const ctaEl = document.getElementById('post-detail-cta');
@@ -1171,7 +2767,7 @@ ctaEl.innerHTML = '';
 ctaEl.classList.add('hidden');
 }
 
-logEvent('post_view', { post_id: postId, post_title: post.title });
+logEvent('post_open', { page_view: post.title });
 }
 
 // ---------- SVG Icon Library ----------
@@ -1203,9 +2799,50 @@ hotel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="
 };
 function svgIcon(name, cls) { return `<span class="svg-icon${cls ? ' ' + cls : ''}">${S[name] || S.custom}</span>`; }
 
+// Normalize audience_stage (accepts hyphen or underscore) -> {cls,label} or null
+function stageInfo(stage) {
+if (!stage || stage === 'all') return null;
+const cls = String(stage).replace(/[_\s]+/g, '-');
+const labels = {
+es: { 'pre-arrival': 'Pre-llegada', 'in-stay': 'Estancia', 'pre-checkout': 'Checkout' },
+en: { 'pre-arrival': 'Pre-arrival', 'in-stay': 'Stay', 'pre-checkout': 'Checkout' },
+fr: { 'pre-arrival': 'Avant l\'arrivée', 'in-stay': 'Séjour', 'pre-checkout': 'Départ' },
+de: { 'pre-arrival': 'Vor Ankunft', 'in-stay': 'Aufenthalt', 'pre-checkout': 'Abreise' },
+pt: { 'pre-arrival': 'Pré-chegada', 'in-stay': 'Estadia', 'pre-checkout': 'Check-out' },
+};
+const map = labels[state.currentLang] || labels.es;
+return { cls, label: map[cls] || cls };
+}
+
+// ---------- Dynamic post sections ----------
+// Prefers data.sections from the backend; degrades to the 3 legacy hardcoded
+// sections (restaurant/tour/guide) when the field hasn't shipped yet.
+function getSections() {
+if (Array.isArray(state.sections) && state.sections.length) {
+return state.sections
+.filter(s => s.is_active !== false)
+.slice()
+.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+}
+return [
+{ id: 'restaurant', slug: 'restaurant', name: t('postSectionRestaurant'), icon: '🍽️' },
+{ id: 'tour', slug: 'tour', name: t('postSectionTour'), icon: '🗺️' },
+{ id: 'guide', slug: 'guide', name: t('postSectionGuide'), icon: '📍' },
+];
+}
+function sectionLabelFor(slug) {
+const sec = getSections().find(s => (s.slug || s.id) === slug);
+if (sec) {
+const name = ct(sec, 'name') || sec.name || slug;
+return sec.icon ? `${sec.icon} ${name}` : name;
+}
+const legacy = { restaurant: t('postBadgeRestaurant'), tour: t('postBadgeTour'), guide: t('postBadgeGuide') };
+return legacy[slug] || slug;
+}
+
 // ---------- Theme Presets ----------
 const themes = {
-  ocean: {primary:'#1E3A5F',secondary:'#4A90D9',accent:'#F0B429',bg:'#FFFFFF',bgSec:'#F9FAFB',text:'#3A3A3A'},
+  ocean: {primary:'#1F1B16',secondary:'#C9A961',accent:'#C9A961',bg:'#F4EFE6',bgSec:'#EFE8DB',text:'#1F1B16'},
   sunset: {primary:'#C2410C',secondary:'#F97316',accent:'#FBBF24',bg:'#FFFBEB',bgSec:'#FEF3C7',text:'#78350F'},
   forest: {primary:'#14532D',secondary:'#16A34A',accent:'#A3E635',bg:'#F0FDF4',bgSec:'#DCFCE7',text:'#1A2E1A'},
   luxury: {primary:'#1A1A2E',secondary:'#6B7280',accent:'#D4AF37',bg:'#FAFAFA',bgSec:'#F5F5F5',text:'#1A1A2E'},
@@ -1215,126 +2852,664 @@ const themes = {
   royal: {primary:'#4C1D95',secondary:'#7C3AED',accent:'#A78BFA',bg:'#FAF5FF',bgSec:'#F3E8FF',text:'#2E1065'}
 };
 
-// ---------- Render Welcome ----------
+// ---------- Theme system (4 canonical layout themes) ----------
+// Legacy per-hotel theme values map onto one of the 4 canonical layouts.
+const THEME_ALIASES = { ocean:'resort', sunset:'resort', tropical:'resort', forest:'zen', minimal:'zen', luxury:'boutique', rose:'boutique', royal:'urban' };
+const THEME_TOKENS = {
+  boutique: {
+    primary:'#1F1B16', secondary:'#C9A961', accent:'#C9A961', bg:'#F4EFE6', bgSec:'#EFE8DB', text:'#1F1B16',
+    fontDisplay:"'Playfair Display', Georgia, serif", fontBody:"'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+    radius:'20px', radiusSm:'14px', shadow:'0 4px 24px rgba(31,27,22,0.06)'
+  },
+  urban: {
+    primary:'#161B22', secondary:'#38BDF8', accent:'#4ADE80', bg:'#0E1116', bgSec:'#161B22', text:'#F1F5F9',
+    fontDisplay:"'Space Grotesk', 'Inter', sans-serif", fontBody:"'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+    radius:'14px', radiusSm:'10px', shadow:'0 8px 30px rgba(0,0,0,0.45)'
+  },
+  resort: {
+    primary:'#255C99', secondary:'#17A398', accent:'#E4572E', bg:'#FBF9F6', bgSec:'#F3EFE7', text:'#20242C',
+    fontDisplay:"'Outfit', -apple-system, BlinkMacSystemFont, sans-serif", fontBody:"'Outfit', -apple-system, BlinkMacSystemFont, sans-serif",
+    radius:'18px', radiusSm:'14px', shadow:'none'
+  },
+  zen: {
+    primary:'#37352F', secondary:'#8A8578', accent:'#8A8578', bg:'#FFFFFF', bgSec:'#FAFAF8', text:'#37352F',
+    fontDisplay:"'Inter', -apple-system, BlinkMacSystemFont, sans-serif", fontBody:"'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+    radius:'4px', radiusSm:'2px', shadow:'none'
+  }
+};
+const THEME_CONFIG = {
+  boutique: { nav:'dock',  modules:'grid',        promos:'carousel', posts:'row'  },
+  urban:    { nav:'tabs',  modules:'grid-dense',   promos:'carousel', posts:'row'  },
+  resort:   { nav:'dock',  modules:'mosaic',       promos:'xl',       posts:'xl'   },
+  zen:      { nav:'index', modules:'list',         promos:'list',     posts:'list' }
+};
+// Resolve a hotel's `theme` field to one of the 4 canonical layout themes.
+function resolveTheme(h) {
+  h = h || {};
+  const raw = (h.theme || '').toString().trim().toLowerCase();
+  if (THEME_TOKENS[raw]) return raw;
+  if (THEME_ALIASES[raw]) return THEME_ALIASES[raw];
+  return 'boutique';
+}
+
+// ---------- Render Welcome (hero step) ----------
 function renderWelcome() {
 const h = state.hotel || {};
-document.getElementById('welcome-hotel-name').textContent = h.nombre || h.name || 'Hotel';
-document.getElementById('welcome-subtitle').textContent = t('welcomeSubtitle');
+const name = h.nombre || h.name || 'Hotel';
+document.getElementById('welcome-hotel-name').textContent = h.welcome_headline || name;
+document.getElementById('welcome-subtitle').textContent = h.welcome_subtitle || t('welcomeSubtitle');
 document.getElementById('btn-start').textContent = t('btnStart');
 
 if (h.cover_url) {
-document.getElementById('welcome-bg').style.backgroundImage = `url('${h.cover_url}')`;
+document.getElementById('ob-hero-bg').style.backgroundImage = `url('${h.cover_url}')`;
 }
 if (h.logo_url) {
-document.getElementById('welcome-logo-img').src = h.logo_url;
-document.getElementById('welcome-logo-img').classList.remove('hidden');
-document.getElementById('welcome-logo-text').classList.add('hidden');
+  document.getElementById('welcome-logo-img').src = h.logo_url;
+  document.getElementById('welcome-logo-img').classList.remove('hidden');
+  document.getElementById('welcome-logo-text').classList.add('hidden');
+  document.getElementById('welcome-logo-img').onerror = function() {
+    this.classList.add('hidden');
+    document.getElementById('welcome-logo-text').classList.remove('hidden');
+  };
+} else {
+document.getElementById('welcome-logo-text').textContent = name.charAt(0);
 }
-if (h.nombre) {
-document.getElementById('welcome-logo-text').textContent = h.nombre.charAt(0);
+
+// Capture-step labels & closing (populate once)
+renderCaptureLabels();
+}
+
+// ---------- Render Value step ----------
+function renderValueStep() {
+document.getElementById('ob-value-title').textContent = state.hotel && state.hotel.welcome_headline
+? t('valueTitle') : t('valueTitle');
+document.getElementById('ob-value-sub').textContent = t('valueSub');
+document.getElementById('btn-value-next').textContent = t('btnContinueFlow');
+
+const cards = buildValueCards();
+const scroll = document.getElementById('ob-value-scroll');
+scroll.innerHTML = cards.map(c => `
+<div class="ob-value-card">
+<div class="ob-value-icon">${svgIcon(c.icon)}</div>
+<h3>${escapeHtml(c.title)}</h3>
+<p>${escapeHtml(c.sub)}</p>
+</div>`).join('');
+
+// Scroll-progress dots under the carousel
+const dotsWrap = document.getElementById('ob-value-dots');
+if (dotsWrap) {
+dotsWrap.innerHTML = cards.map((_, i) => `<span class="ob-dot${i === 0 ? ' active' : ''}"></span>`).join('');
+}
+if (scroll && !scroll.dataset.dotsBound) {
+scroll.dataset.dotsBound = '1';
+scroll.addEventListener('scroll', () => {
+const dots = dotsWrap ? dotsWrap.querySelectorAll('.ob-dot') : [];
+const cardEls = scroll.querySelectorAll('.ob-value-card');
+if (!dots.length || !cardEls.length) return;
+const center = scroll.scrollLeft + scroll.clientWidth / 2;
+let idx = 0, minDist = Infinity;
+cardEls.forEach((el, i) => {
+const dist = Math.abs((el.offsetLeft + el.offsetWidth / 2) - center);
+if (dist < minDist) { minDist = dist; idx = i; }
+});
+dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+}, { passive: true });
+}
+}
+
+// Derive 2-3 value cards from the hotel's real modules/services/posts
+function buildValueCards() {
+const cards = [];
+const seen = new Set();
+const push = (icon, title, sub) => {
+if (!title || seen.has(title)) return;
+seen.add(title); cards.push({ icon, title, sub });
+};
+// From real modules (up to 3)
+(state.modules || []).slice(0, 3).forEach(m => {
+push(m.icon || 'info', m.title || '', m.subtitle || m.description || t('vServicesSub'));
+});
+// Guide/tours if posts exist
+if ((state.posts || []).some(p => p.section === 'guide' || p.section === 'tour')) {
+push('map-pin', t('vGuide'), t('vGuideSub'));
+}
+// Contact/help fallback
+const h = state.hotel || {};
+if (h.whatsapp) push('whatsapp', t('vHelp'), t('vHelpSub'));
+// Guarantee 2-3 cards with sensible fallbacks
+if (cards.length < 2) {
+push('wifi', t('vWifi'), t('vWifiSub'));
+push('services', t('vServices'), t('vServicesSub'));
+push('map-pin', t('vGuide'), t('vGuideSub'));
+}
+return cards.slice(0, 3);
+}
+
+// ---------- Render capture labels + closing ----------
+function renderCaptureLabels() {
+const h = state.hotel || {};
+setText('onboard-title', h.onboarding_title || t('onboardTitle'));
+setText('onboard-subtitle', h.onboarding_subtitle || t('onboardSubtitle'));
+setText('lbl-name', t('labelName') + ' *');
+setText('lbl-whatsapp', t('labelWhatsapp'));
+setText('lbl-email', t('labelEmail'));
+setText('lbl-checkin', t('labelCheckin'));
+setText('lbl-checkout', t('labelCheckout'));
+setText('lbl-language', t('labelLanguage'));
+setText('hint-whatsapp', t('hintWhatsapp'));
+setText('lbl-consent', t('consentLabel'));
+setText('btn-onboard-submit', t('btnContinueFlow'));
+setText('btn-express', t('express'));
+document.getElementById('field-name').placeholder = t('placeholderName');
+document.getElementById('field-whatsapp').placeholder = t('placeholderWhatsapp');
+document.getElementById('field-email').placeholder = t('placeholderEmail');
+const langSel = document.getElementById('field-language');
+if (langSel) langSel.value = state.currentLang;
+}
+
+function setText(id, txt) { const el = document.getElementById(id); if (el) el.textContent = txt; }
+
+// ---------- Accessibility: keyboard-operable clickable cards ----------
+// Cards are rendered as <div onclick="..."> for layout flexibility; this adds
+// the attributes needed for them to behave like real buttons for keyboard/AT users.
+function actionableAttrs() {
+return `role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"`;
+}
+
+// ---------- Card renderers (branch by THEME_CONFIG variant) ----------
+function renderModuleCard(m, i, variant) {
+const st = stageInfo(m.audience_stage);
+const stageBadge = st ? `<span class="module-stage stage-${st.cls}">${st.label}</span>` : '';
+const hasBadgeCls = st ? ' has-badge' : '';
+const title = escapeHtml(ct(m, 'title'));
+const sub = escapeHtml(ct(m, 'subtitle') || m.description || '');
+if (variant === 'mosaic') {
+const palette = resortPalette();
+const bg = palette[i % 4];
+const fg = resortTileTextColor(bg);
+return `<div class="module-card mosaic-tile animate-in" style="background:${bg};color:${fg}" ${actionableAttrs()} onclick="showModuleDetail('${m.id}')">
+${stageBadge}
+<div class="mosaic-icon">${svgIcon(m.icon)}</div>
+<div class="mosaic-text"><h3>${title}</h3>${sub ? `<p>${sub}</p>` : ''}</div>
+</div>`;
+}
+if (variant === 'xl') {
+const media = m.image_url
+? `<img class="xl-card-img" src="${escapeHtml(m.image_url)}" alt="${title}">`
+: `<div class="xl-card-img xl-card-fallback"></div>`;
+return `<div class="module-card xl-card animate-in" ${actionableAttrs()} onclick="showModuleDetail('${m.id}')">
+${media}<div class="xl-card-scrim"></div>${stageBadge}
+<div class="xl-card-body"><div class="module-icon">${svgIcon(m.icon)}</div><h3>${title}</h3><p>${sub}</p></div>
+</div>`;
+}
+if (variant === 'list') {
+return `<div class="module-card list-row animate-in" ${actionableAttrs()} onclick="showModuleDetail('${m.id}')">
+<div class="module-icon">${svgIcon(m.icon)}</div>
+<div class="list-row-text"><h3>${title}</h3><p>${sub}</p></div>
+${stageBadge}
+</div>`;
+}
+// 'grid' (boutique) and 'grid-dense' (urban) share the same markup; CSS handles density
+return `<div class="module-card${hasBadgeCls} animate-in delay-${(i % 4) + 1}" ${actionableAttrs()} onclick="showModuleDetail('${m.id}')">
+${stageBadge}
+<div class="module-icon">${svgIcon(m.icon)}</div>
+<h3>${title}</h3>
+<p>${sub}</p>
+<span class="module-chevron">${S.arrowRight}</span>
+</div>`;
+}
+
+function renderPromoCard(p, variant) {
+const title = escapeHtml(ct(p, 'title'));
+const desc = escapeHtml(ct(p, 'description') || p.description || '');
+const priceBadge = p.price_text ? `<div class="promo-price">${escapeHtml(p.price_text)}</div>` : '';
+const ctaLabel = escapeHtml(p.cta_label) || (state.currentLang === 'es' ? 'Ver más' : 'Learn more');
+const cta = p.cta_link ? `<a class="btn-cta" href="${escapeHtml(p.cta_link)}" target="_blank" onclick="logEvent('promo_click')">${ctaLabel}</a>` : '';
+const media = p.image_url
+? `<img class="promo-img" src="${escapeHtml(p.image_url)}" alt="${title}">`
+: `<div class="promo-img" style="background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px">✦</div>`;
+if (variant === 'xl') {
+return `<div class="promo-card xl-card">
+<div class="promo-media xl-card-media">${media}<div class="xl-card-scrim"></div>${priceBadge}
+<div class="xl-card-overlay-body"><h3>${title}</h3>${cta}</div>
+</div>
+</div>`;
+}
+if (variant === 'list') {
+return `<div class="promo-card list-row">
+<div class="list-row-text"><h3>${title}</h3><p>${desc}</p>${p.price_text ? `<span class="list-row-price">${escapeHtml(p.price_text)}</span>` : ''}</div>
+${cta}
+</div>`;
+}
+return `<div class="promo-card">
+<div class="promo-media">${media}${priceBadge}</div>
+<div class="promo-body"><h3>${title}</h3><p>${desc}</p>${cta}</div>
+</div>`;
+}
+
+function renderPostCard(p, variant) {
+const title = escapeHtml(ct(p, 'title'));
+const sub = escapeHtml(ct(p, 'subtitle'));
+const media = p.image_url
+? `<img class="post-card-img" src="${escapeHtml(p.image_url)}" alt="${title}">`
+: `<div class="post-card-img" style="background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-size:36px">✦</div>`;
+const btn = p.button_text ? `<div class="post-card-btn">${escapeHtml(p.button_text)}</div>` : '';
+if (variant === 'xl') {
+return `<div class="post-card xl-card" ${actionableAttrs()} onclick="showPostDetail(${p.id})">
+<div class="post-media xl-card-media">${media}<div class="xl-card-scrim"></div>
+<div class="xl-card-overlay-body"><h3>${title}</h3>${btn ? `<span class="btn-cta">${escapeHtml(p.button_text)}</span>` : ''}</div>
+</div>
+</div>`;
+}
+if (variant === 'list') {
+return `<div class="post-card list-row" ${actionableAttrs()} onclick="showPostDetail(${p.id})">
+<div class="list-row-text"><h3>${title}</h3><p>${sub}</p></div>
+</div>`;
+}
+return `<div class="post-card" ${actionableAttrs()} onclick="showPostDetail(${p.id})">
+<div class="post-media">${media}</div>
+<div class="post-card-body">
+<div class="post-card-title">${title}</div>
+<div class="post-card-subtitle">${sub}</div>
+${btn}
+</div>
+</div>`;
+}
+
+// ---------- Urban theme: bottom-nav tabs (filters already-rendered home sections) ----------
+function renderBottomNav() {
+setText('bn-label-home', t('tabHome'));
+setText('bn-label-explore', t('tabExplore'));
+setText('bn-label-offers', t('tabOffers'));
+setText('bn-label-info', t('tabInfo'));
+}
+function applyUrbanTab(tab) {
+tab = tab || 'home';
+state.urbanTab = tab;
+if (resolveTheme(state.hotel) !== 'urban') return;
+// Toggle sections tagged with data-urban-tab="<space separated tabs>"
+document.querySelectorAll('#home-content [data-urban-tab]').forEach(el => {
+const tabs = (el.dataset.urbanTab || '').split(/\s+/);
+el.style.display = tabs.includes(tab) ? '' : 'none';
+});
+// "Inicio" is a summary: only the first few modules + first promo
+const grid = document.getElementById('module-grid');
+if (grid) {
+Array.from(grid.children).forEach((card, i) => {
+card.style.display = (tab === 'home' && i >= 4) ? 'none' : '';
+});
+}
+const promoScroll = document.getElementById('promo-scroll');
+if (promoScroll) {
+Array.from(promoScroll.children).forEach((card, i) => {
+card.style.display = (tab === 'home' && i >= 1) ? 'none' : '';
+});
+}
+// Active tab styling + aria-current
+document.querySelectorAll('.bottom-nav-item').forEach(btn => {
+const active = btn.dataset.tab === tab;
+btn.classList.toggle('active', active);
+if (active) btn.setAttribute('aria-current', 'page');
+else btn.removeAttribute('aria-current');
+});
+}
+
+// ---------- Zen theme: index of anchors to visible home sections ----------
+function renderZenIndex() {
+const idx = document.getElementById('zen-index');
+if (!idx) return;
+if (resolveTheme(state.hotel) !== 'zen') { idx.innerHTML = ''; return; }
+const items = [];
+if (state.modules.length) items.push({ href: '#section-modules-heading', label: t('sectionModules') });
+if (state.promos.length) items.push({ href: '#section-promos-heading', label: t('sectionPromos') });
+if (state.gallery && state.gallery.length) items.push({ href: '#section-gallery-heading', label: t('sectionGallery') });
+getSections().forEach(sec => {
+const slug = sec.slug || sec.id;
+if (state.posts.some(p => p.section === slug)) {
+items.push({ href: `#post-section-${slug}`, label: ct(sec, 'name') || sec.name || slug });
+}
+});
+if (state.faqs.length) items.push({ href: '#section-faq-heading', label: t('sectionFaq') });
+idx.innerHTML = items.map(i => `<a href="${i.href}" class="zen-index-link">${escapeHtml(i.label)}</a>`).join('');
+}
+
+// ---------- Dynamic post sections (renders inside #dynamic-post-sections) ----------
+function renderPostSections(themeCfg) {
+const container = document.getElementById('dynamic-post-sections');
+if (!container) return;
+themeCfg = themeCfg || THEME_CONFIG[resolveTheme(state.hotel)] || THEME_CONFIG.boutique;
+const sections = getSections();
+let html = '';
+sections.forEach(sec => {
+const slug = sec.slug || sec.id;
+const sectionPosts = state.posts.filter(p => p.section === slug);
+if (!sectionPosts.length) return;
+const name = escapeHtml(ct(sec, 'name') || sec.name || slug);
+const icon = sec.icon || '📍';
+html += `<div class="post-section reveal" id="post-section-${escapeHtml(slug)}">
+<div class="post-section-header">
+<div class="post-section-icon" aria-hidden="true" style="font-size:18px">${escapeHtml(icon)}</div>
+<h2 id="post-title-${escapeHtml(slug)}">${name}</h2>
+</div>
+<div class="post-scroll" id="post-scroll-${escapeHtml(slug)}">${sectionPosts.map(p => renderPostCard(p, themeCfg.posts)).join('')}</div>
+</div>`;
+});
+container.innerHTML = html;
+}
+
+// ---------- Gallery: strip on home + full grid view + lightbox ----------
+function renderGalleryStrip() {
+const heading = document.getElementById('section-gallery-heading');
+const strip = document.getElementById('gallery-strip');
+if (!heading || !strip) return;
+const items = state.gallery || [];
+if (!items.length) {
+heading.classList.add('hidden');
+strip.classList.add('hidden');
+strip.innerHTML = '';
+return;
+}
+heading.classList.remove('hidden');
+strip.classList.remove('hidden');
+setText('section-gallery-title', t('sectionGallery'));
+setText('section-gallery-eyebrow', t('eyebrowGallery'));
+const shown = items.slice(0, 6);
+strip.innerHTML = shown.map((g, i) => {
+const caption = escapeHtml(ct(g, 'caption') || '');
+return `<button class="gallery-thumb" ${actionableAttrs()} onclick="goToGallery(${i})" aria-label="${caption}">
+<img src="${escapeHtml(g.image_url)}" alt="${caption}" loading="lazy">
+</button>`;
+}).join('') + `<button class="gallery-viewall" ${actionableAttrs()} onclick="goToGallery(0)">${escapeHtml(t('galleryViewAll'))}</button>`;
+}
+
+function goToGallery(startIdx) {
+showView('gallery-view');
+setText('gallery-view-title', t('sectionGallery'));
+renderGalleryGrid();
+logEvent('gallery_open');
+}
+
+function renderGalleryGrid() {
+const grid = document.getElementById('gallery-grid');
+if (!grid) return;
+const items = state.gallery || [];
+if (!items.length) {
+grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 24px;color:var(--text-light)">${t('galleryEmpty')}</div>`;
+return;
+}
+grid.innerHTML = items.map((g, i) => {
+const caption = escapeHtml(ct(g, 'caption') || '');
+return `<button class="gallery-cell" ${actionableAttrs()} onclick="openLightbox(${i})">
+<img src="${escapeHtml(g.image_url)}" alt="${caption}" loading="lazy">
+</button>`;
+}).join('');
+}
+
+// ---------- Lightbox ----------
+function openLightbox(idx) {
+const items = state.gallery || [];
+if (!items.length) return;
+state.lightboxIdx = ((idx % items.length) + items.length) % items.length;
+renderLightbox();
+document.getElementById('lightbox-overlay').classList.remove('hidden');
+document.addEventListener('keydown', lightboxKeyHandler);
+}
+function closeLightbox() {
+const ov = document.getElementById('lightbox-overlay');
+if (ov) ov.classList.add('hidden');
+document.removeEventListener('keydown', lightboxKeyHandler);
+}
+function lightboxNext() {
+const items = state.gallery || [];
+if (!items.length) return;
+state.lightboxIdx = (state.lightboxIdx + 1) % items.length;
+renderLightbox();
+}
+function lightboxPrev() {
+const items = state.gallery || [];
+if (!items.length) return;
+state.lightboxIdx = (state.lightboxIdx - 1 + items.length) % items.length;
+renderLightbox();
+}
+function renderLightbox() {
+const items = state.gallery || [];
+const g = items[state.lightboxIdx];
+if (!g) return;
+const caption = ct(g, 'caption') || '';
+document.getElementById('lightbox-img').src = g.image_url;
+document.getElementById('lightbox-img').alt = caption;
+document.getElementById('lightbox-caption').textContent = caption;
+document.getElementById('lightbox-counter').textContent = `${state.lightboxIdx + 1}/${items.length}`;
+}
+function lightboxKeyHandler(e) {
+if (e.key === 'Escape') closeLightbox();
+else if (e.key === 'ArrowRight') lightboxNext();
+else if (e.key === 'ArrowLeft') lightboxPrev();
+}
+// Swipe support on the lightbox stage
+function initLightboxSwipe() {
+const stage = document.getElementById('lightbox-stage');
+if (!stage || stage.dataset.swipeBound) return;
+stage.dataset.swipeBound = '1';
+let sx = 0, sy = 0;
+stage.addEventListener('touchstart', (e) => {
+const t0 = e.changedTouches[0];
+sx = t0.clientX; sy = t0.clientY;
+}, { passive: true });
+stage.addEventListener('touchend', (e) => {
+const t0 = e.changedTouches[0];
+const dx = t0.clientX - sx, dy = t0.clientY - sy;
+if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { dx < 0 ? lightboxNext() : lightboxPrev(); }
+}, { passive: true });
+}
+
+// ---------- Header presets (classic/centered/split/custom) ----------
+function applyHeroOverlay(style, cfg, themeName) {
+const scrim = document.getElementById('home-hero-scrim');
+if (!scrim) return;
+if (style === 'classic') { scrim.style.background = ''; return; }
+const overlay = (cfg && typeof cfg.overlay === 'number') ? cfg.overlay : 0.45;
+if (themeName === 'resort') {
+scrim.style.background = `linear-gradient(180deg, rgba(var(--primary-rgb),${(overlay * 0.5).toFixed(2)}) 0%, rgba(var(--primary-rgb),${overlay}) 100%)`;
+} else {
+scrim.style.background = `linear-gradient(180deg, rgba(0,0,0,${(overlay * 0.6).toFixed(2)}) 0%, rgba(0,0,0,${overlay}) 100%)`;
+}
+}
+function renderHeader() {
+const h = state.hotel || {};
+const hero = document.getElementById('home-hero');
+if (!hero) return;
+let cfg = {};
+// El backend lo sirve ya parseado (objeto); se acepta también string JSON por compat
+try {
+if (h.header_config && typeof h.header_config === 'object') cfg = h.header_config;
+else cfg = h.header_config ? JSON.parse(h.header_config) : {};
+} catch (e) { cfg = {}; }
+const style = ['classic', 'centered', 'split', 'custom'].includes(h.header_style) ? h.header_style : 'classic';
+hero.classList.remove('header-classic', 'header-centered', 'header-split', 'header-custom');
+hero.classList.add('header-' + style);
+
+// Fallback background when there is no cover image: bg_color (or theme primary), subtle gradient
+const heroBg = document.getElementById('home-hero-bg');
+if (heroBg) {
+if (!h.cover_url) {
+const base = cfg.bg_color || (getComputedStyle(document.documentElement).getPropertyValue('--primary') || '#1F1B16').trim();
+heroBg.style.backgroundImage = '';
+heroBg.style.background = `linear-gradient(135deg, ${base}, ${lighten(base, 0.16)})`;
+} else {
+heroBg.style.background = '';
+}
+}
+
+applyHeroOverlay(style, cfg, resolveTheme(h));
+
+// Hero logo (shown for centered/split/custom, hidden for classic which uses the top-bar logo)
+const heroLogoWrap = document.getElementById('home-hero-logo');
+const heroLogoImg = document.getElementById('home-hero-logo-img');
+const heroLogoTxt = document.getElementById('home-hero-logo-text');
+const showLogo = style === 'custom' ? (cfg.logo_pos !== 'none') : true;
+if (heroLogoWrap) heroLogoWrap.style.display = (style !== 'classic' && showLogo) ? 'flex' : 'none';
+if (h.logo_url) {
+if (heroLogoImg) { heroLogoImg.src = h.logo_url; heroLogoImg.classList.remove('hidden'); }
+if (heroLogoTxt) heroLogoTxt.classList.add('hidden');
+} else {
+if (heroLogoTxt) { heroLogoTxt.textContent = (h.nombre || 'H').charAt(0); heroLogoTxt.classList.remove('hidden'); }
+if (heroLogoImg) heroLogoImg.classList.add('hidden');
+}
+
+// Hotel name visibility below the logo (classic keeps its own "hide name if logo present" logic)
+const heroNameEl = document.getElementById('hero-hotel-name');
+if (style !== 'classic' && heroNameEl) {
+heroNameEl.style.display = cfg.show_name !== false ? '' : 'none';
+}
+
+// Custom preset knobs: align / logo position / text color
+const welcome = document.getElementById('home-welcome');
+if (welcome) {
+if (style === 'custom') {
+welcome.style.textAlign = cfg.align || 'left';
+welcome.style.alignItems = cfg.align === 'center' ? 'center' : (cfg.align === 'right' ? 'flex-end' : 'flex-start');
+welcome.style.flexDirection = cfg.logo_pos === 'left' ? 'row' : 'column';
+welcome.style.color = cfg.text_color || '';
+} else {
+welcome.style.textAlign = '';
+welcome.style.alignItems = '';
+welcome.style.flexDirection = '';
+welcome.style.color = '';
+}
 }
 }
 
 // ---------- Render Home ----------
 function renderHome() {
 const h = state.hotel || {};
-const name = (state.guestName || '').split(' ')[0] || 'Guest';
+const rawName = (state.guestName || '').split(' ')[0];
 
-// Apply theme
-if (h.primary_color) document.documentElement.style.setProperty('--primary', h.primary_color);
-if (h.accent_color) document.documentElement.style.setProperty('--accent', h.accent_color);
+// Ensure branding is applied (idempotent)
+applyTheme(h);
+renderHeader();
+initLightboxSwipe();
 
-// Brand
+// Brand — logo en barra, nombre en hero (opcional si logo ya lo incluye)
+const hotelName = h.nombre || h.name || '';
+const heroNameEl = document.getElementById('hero-hotel-name');
+if (h.logo_url) {
+  // Logo tiene el nombre → ocultar texto redundante
+  heroNameEl.textContent = '';
+  heroNameEl.style.display = 'none';
+} else if (hotelName) {
+  heroNameEl.textContent = hotelName;
+  heroNameEl.style.display = '';
+} else {
+  heroNameEl.textContent = state.currentLang === 'es' ? 'Bienvenido/a' : 'Welcome';
+  heroNameEl.style.display = '';
+}
 if (h.logo_url) {
 document.getElementById('home-logo-img').src = h.logo_url;
 document.getElementById('home-logo-img').classList.remove('hidden');
 document.getElementById('home-logo-text').classList.add('hidden');
+document.getElementById('home-logo-img').onerror = function() {
+  this.classList.add('hidden');
+  document.getElementById('home-logo-text').classList.remove('hidden');
+  document.getElementById('home-logo-text').textContent = (h.nombre || 'H').charAt(0).toUpperCase();
+};
 } else {
 document.getElementById('home-logo-text').textContent = (h.nombre || 'H').charAt(0);
 }
-document.getElementById('home-hotel-name').textContent = h.nombre || h.name || '';
 
-// Greeting
-const greeting = state.currentLang === 'es' ? `¡Hola, ${name}!` : `Hello, ${name}!`;
+// Hero cover image (falls back to a primary -> primary-light gradient via CSS)
+const heroBg = document.getElementById('home-hero-bg');
+if (heroBg) heroBg.style.backgroundImage = h.cover_url ? `url('${h.cover_url}')` : '';
+
+// Greeting: contextual by hour of day, + guest name if known
+const hourNow = new Date().getHours();
+const greetKey = hourNow < 12 ? 'greetMorning' : (hourNow < 20 ? 'greetAfternoon' : 'greetNight');
+const greetBase = t(greetKey);
+let greeting;
+if (rawName) {
+greeting = state.currentLang === 'es' ? `¡${greetBase}, ${rawName}!` : `${greetBase}, ${rawName}!`;
+} else {
+greeting = state.currentLang === 'es' ? `¡${greetBase}!` : `${greetBase}!`;
+}
 document.getElementById('greeting-text').textContent = greeting;
 document.getElementById('greeting-sub').textContent = t('greetingSub');
 
-// Language toggle
-document.getElementById('lang-toggle').textContent = t('langToggle');
+// Language control: only shown when the hotel supports 2+ languages; label = current lang code
+const langs = supportedLangs();
+const langBtn = document.getElementById('lang-toggle');
+if (langBtn) {
+langBtn.style.display = langs.length > 1 ? '' : 'none';
+langBtn.textContent = state.currentLang.toUpperCase();
+langBtn.setAttribute('aria-label', t('langMenuLabel'));
+}
 
 // Sections
 document.getElementById('section-modules-title').textContent = t('sectionModules');
 document.getElementById('section-faq-title').textContent = t('sectionFaq');
 document.getElementById('section-promos-title').textContent = t('sectionPromos');
+setText('section-modules-eyebrow', t('eyebrowModules'));
+setText('section-promos-eyebrow', t('eyebrowPromos'));
+setText('section-faq-eyebrow', t('eyebrowFaq'));
 
-// PWA Banner
-document.getElementById('pwa-banner-title').textContent = t('pwaTitle');
-document.getElementById('pwa-banner-sub').textContent = t('pwaSub');
+// PWA Banner copy (visibility handled by refreshInstallUI)
+refreshInstallUI();
+
+// Push notifications opt-in card
+setText('push-card-title', t('pushCardTitle'));
+setText('push-card-sub', t('pushCardSub'));
+setText('push-btn-enable', t('pushBtnEnable'));
+setText('push-btn-dismiss', t('pushBtnDismiss'));
+refreshPushUI();
+
+// Layout variant for the active theme (module/promo/post card shape + nav style)
+const themeCfg = THEME_CONFIG[resolveTheme(h)] || THEME_CONFIG.boutique;
 
 // Modules
 const grid = document.getElementById('module-grid');
-grid.innerHTML = state.modules.map((m, i) => {
-const stageClass = (m.audience_stage || '').replace(/\s+/g, '-');
-const stageLabels = { 'pre-arrival': 'Pre-llegada', 'in-stay': 'Estancia', 'pre-checkout': 'Checkout' };
-return `
-<div class="module-card animate-in delay-${(i % 4) + 1}" onclick="showModuleDetail('${m.id}')">
-${m.audience_stage && m.audience_stage !== 'all' ? `<span class="module-stage stage-${stageClass}">${stageLabels[m.audience_stage] || m.audience_stage}</span>` : ''}
-<div class="module-icon" style="color:var(--primary)">${svgIcon(m.icon)}</div>
-<h3>${escapeHtml(m.title || '')}</h3>
-<p>${escapeHtml(m.subtitle || m.description || '')}</p>
-</div>`;
-}).join('');
+grid.innerHTML = state.modules.map((m, i) => renderModuleCard(m, i, themeCfg.modules)).join('');
 
 // Promos
-const promoSection = document.getElementById('section-promos-title');
+const promoTitleEl = document.getElementById('section-promos-title');
+const promoSection = promoTitleEl.closest('.section-heading') || promoTitleEl;
 const promoScroll = document.getElementById('promo-scroll');
 if (state.promos.length > 0) {
 promoSection.classList.remove('hidden');
+promoTitleEl.classList.remove('hidden');
 promoScroll.classList.remove('hidden');
-promoScroll.innerHTML = state.promos.map(p => `
-<div class="promo-card">
-${p.image_url ? `<img class="promo-img" src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.title || '')}">` : `<div class="promo-img" style="background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-size:36px">🎁</div>`}
-<div class="promo-body">
-<h3>${escapeHtml(p.title || '')}</h3>
-<p>${escapeHtml(p.description || '')}</p>
-${p.price_text ? `<div class="promo-price">${escapeHtml(p.price_text)}</div>` : ''}
-${p.cta_link ? `<a class="btn-cta" href="${escapeHtml(p.cta_link)}" target="_blank" onclick="logEvent('promo_click')">${p.cta_label || (state.currentLang === 'es' ? 'Ver más' : 'Learn more')}</a>` : ''}
-</div>
-</div>
-`).join('');
+promoScroll.innerHTML = state.promos.map(p => renderPromoCard(p, themeCfg.promos)).join('');
 } else {
 promoSection.classList.add('hidden');
+promoTitleEl.classList.add('hidden');
 promoScroll.classList.add('hidden');
 }
 
-// Posts (Restaurants, Tours, Guide)
-const sectionNames = {
-restaurant: state.currentLang === 'es' ? 'Restaurantes y Servicios' : 'Restaurants & Services',
-tour: state.currentLang === 'es' ? 'Tours y Experiencias' : 'Tours & Experiences',
-guide: state.currentLang === 'es' ? 'Guía Turística' : 'Tourist Guide'
-};
-['restaurant', 'tour', 'guide'].forEach(sec => {
-const section = document.getElementById(`post-section-${sec}`);
-const scroll = document.getElementById(`post-scroll-${sec}`);
-const title = document.getElementById(`post-title-${sec}`);
-const sectionPosts = state.posts.filter(p => p.section === sec);
-if (sectionPosts.length) {
-section.classList.remove('hidden');
-title.textContent = sectionNames[sec];
-scroll.innerHTML = sectionPosts.map(p => `
-<div class="post-card" onclick="showPostDetail(${p.id})">
-${p.image_url ? `<img class="post-card-img" src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.title || '')}">` : `<div class="post-card-img" style="background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-size:48px">${p.icon || '📄'}</div>`}
-<div class="post-card-body">
-<div class="post-card-title">${escapeHtml(p.title || '')}</div>
-<div class="post-card-subtitle">${escapeHtml(p.subtitle || '')}</div>
-${p.button_text ? `<div class="post-card-btn">${escapeHtml(p.button_text)}</div>` : ''}
-</div>
-</div>
-`).join('');
-} else {
-section.classList.add('hidden');
+// Posts: dynamic sections (data.sections, or the 3 legacy hardcoded slugs as fallback)
+renderPostSections(themeCfg);
+
+// Gallery strip
+renderGalleryStrip();
+
+// Urban theme: inline contact list (bottom-nav replaces the floating contact dock)
+setText('section-contact-title', t('sectionContact'));
+const urbanContactList = document.getElementById('urban-contact-list');
+if (urbanContactList) {
+const items = [];
+if (h.whatsapp) items.push({ label: t('contactWhatsApp'), href: `https://wa.me/${String(h.whatsapp).replace(/[^0-9]/g, '')}`, icon: 'whatsapp' });
+if (h.phone) items.push({ label: t('contactPhone'), href: `tel:${h.phone}`, icon: 'phone' });
+if (h.email) items.push({ label: t('contactEmail'), href: `mailto:${h.email}`, icon: 'email' });
+urbanContactList.innerHTML = items.map(it => `
+<div class="faq-item">
+<a class="faq-question" href="${escapeHtml(it.href)}" target="_blank" onclick="logEvent('contact_${it.icon}')">
+<span>${escapeHtml(it.label)}</span>
+<span class="faq-arrow">${S.arrowRight}</span>
+</a>
+</div>`).join('');
 }
-});
+
+// Urban tabs / Zen index / bottom-nav labels (theme-specific navigation)
+renderBottomNav();
+applyUrbanTab(state.urbanTab || 'home');
+renderZenIndex();
 
 // FAQs
 const faqList = document.getElementById('faq-list');
@@ -1342,60 +3517,82 @@ if (state.faqs.length > 0) {
 faqList.innerHTML = state.faqs.map(f => `
 <div class="faq-item">
 <button class="faq-question" onclick="toggleFaq(this)">
-<span>${escapeHtml(f.question || f.q || '')}</span>
-<span class="faq-arrow">▼</span>
+<span>${escapeHtml(ct(f, 'question') || f.q || '')}</span>
+<span class="faq-arrow">${S.chevronDown}</span>
 </button>
 <div class="faq-answer">
-<div class="faq-answer-inner">${escapeHtml(f.answer || f.a || '')}</div>
+<div class="faq-answer-inner">${escapeHtml(ct(f, 'answer') || f.a || '')}</div>
 </div>
 </div>
 `).join('');
 } else {
-faqList.innerHTML = `<div style="text-align:center;padding:24px;color:var(--text-light);font-size:14px">${state.currentLang === 'es' ? 'No hay preguntas frecuentes disponibles.' : 'No FAQ available.'}</div>`;
+faqList.innerHTML = `<div style="text-align:center;padding:24px;color:var(--text-light);font-size:14px">${t('faqEmpty')}</div>`;
 }
 
-// Contact
-if (h.whatsapp_number) {
-const wa = h.whatsapp_number.replace(/[^0-9+]/g, '');
+// Contact (fields: whatsapp, phone, email)
 const waBtn = document.getElementById('contact-whatsapp');
+if (h.whatsapp) {
+const wa = String(h.whatsapp).replace(/[^0-9]/g, '');
 waBtn.href = `https://wa.me/${wa}`;
 waBtn.querySelector('.contact-label').textContent = t('contactWhatsApp');
-}
-if (h.phone) {
+waBtn.style.display = '';
+} else { waBtn.style.display = 'none'; }
 const phoneBtn = document.getElementById('contact-phone');
+if (h.phone) {
 phoneBtn.href = `tel:${h.phone}`;
 phoneBtn.querySelector('.contact-label').textContent = t('contactPhone');
-}
-if (h.email) {
+phoneBtn.style.display = '';
+} else { phoneBtn.style.display = 'none'; }
 const emailBtn = document.getElementById('contact-email');
+if (h.email) {
 emailBtn.href = `mailto:${h.email}`;
 emailBtn.querySelector('.contact-label').textContent = t('contactEmail');
+emailBtn.style.display = '';
+} else { emailBtn.style.display = 'none'; }
 }
 
-// Forms
-document.getElementById('field-name').placeholder = t('placeholderName');
-document.getElementById('field-whatsapp').placeholder = t('placeholderWhatsapp');
-document.getElementById('field-email').placeholder = t('placeholderEmail');
+// ---------- Onboarding (capture step) ----------
+function clearFieldError(id) {
+const f = document.getElementById(id);
+if (f) f.classList.remove('invalid');
+}
+function setFieldError(id, errId, msg) {
+const f = document.getElementById(id);
+if (f) f.classList.add('invalid');
+const e = document.getElementById(errId);
+if (e) { e.textContent = msg; e.classList.add('show'); }
+}
+function hideFieldError(errId) {
+const e = document.getElementById(errId);
+if (e) e.classList.remove('show');
 }
 
-// ---------- Onboarding ----------
 async function submitOnboarding(e) {
-e.preventDefault();
-if (e.stopPropagation) e.stopPropagation();
-const name = document.getElementById('field-name').value.trim();
-if (!name) {
-showToast(state.currentLang === 'es' ? 'Por favor ingresa tu nombre' : 'Please enter your name', 'error');
-return;
+if (e && e.preventDefault) e.preventDefault();
+if (e && e.stopPropagation) e.stopPropagation();
+
+const nameEl = document.getElementById('field-name');
+const emailEl = document.getElementById('field-email');
+const name = nameEl.value.trim();
+const email = emailEl.value.trim();
+let ok = true;
+
+// Inline validation
+clearFieldError('field-name'); hideFieldError('err-name');
+clearFieldError('field-email'); hideFieldError('err-email');
+if (!name) { setFieldError('field-name', 'err-name', t('errNameRequired')); ok = false; }
+if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+setFieldError('field-email', 'err-email', t('errEmailInvalid')); ok = false;
 }
 if (!document.getElementById('field-consent').checked) {
-showToast(state.currentLang === 'es' ? 'Debes aceptar los términos para continuar' : 'You must accept the terms to continue', 'error');
-return;
+showToast(t('errConsent')); ok = false;
 }
+if (!ok) return;
 
 const payload = {
 name,
 whatsapp: document.getElementById('field-whatsapp').value.trim(),
-email: document.getElementById('field-email').value.trim(),
+email,
 check_in_date: document.getElementById('field-checkin').value || null,
 check_out_date: document.getElementById('field-checkout').value || null,
 language: document.getElementById('field-language').value,
@@ -1403,7 +3600,7 @@ consent_contact: true,
 source_qr: new URLSearchParams(window.location.search).get('source') || null,
 };
 
-const btn = document.querySelector('.onboard-footer .btn-primary');
+const btn = document.getElementById('btn-onboard-submit');
 btn.disabled = true;
 btn.textContent = t('loading');
 
@@ -1412,38 +3609,85 @@ method: 'POST',
 body: JSON.stringify(payload),
 });
 
+btn.disabled = false;
+btn.textContent = t('btnContinueFlow');
+
 if (result && (result.guest_lead_id || result.id)) {
 const leadId = result.guest_lead_id || result.id;
 state.guestLeadId = leadId;
 state.guestName = name;
-state.currentLang = payload.language || 'es';
-sessionStorage.setItem(`hf_lead_${state.slug}`, leadId);
-sessionStorage.setItem(`hf_name_${state.slug}`, name);
+state.currentLang = payload.language || state.currentLang;
+// Persist to localStorage so returning guests skip onboarding
+localStorage.setItem(`hf_lead_${state.slug}`, leadId);
+localStorage.setItem(`hf_name_${state.slug}`, name);
 localStorage.setItem(`hf_lang_${state.slug}`, state.currentLang);
-showView('home-view');
-renderHome();
+// Also store onboarding payload for re-use
+localStorage.setItem(`hf_onboard_${state.slug}`, JSON.stringify(payload));
 logEvent('onboarding_complete');
-showToast(state.currentLang === 'es' ? `¡Hola, ${name.split(' ')[0]}!` : `Hello, ${name.split(' ')[0]}!`);
+renderClosing();
+goStep(3);
 } else {
 showToast(state.currentLang === 'es' ? 'Error al registrar. Intenta de nuevo.' : 'Registration error. Please try again.');
 }
+}
 
-btn.disabled = false;
-btn.textContent = t('btnContinue');
+// ---------- Closing step ----------
+function renderClosing() {
+const h = state.hotel || {};
+const first = (state.guestName || '').split(' ')[0];
+setText('ob-close-title', first ? t('closeTitle', { name: first }) : t('closeTitleGeneric'));
+setText('ob-close-sub', t('closeSub'));
+setText('btn-enter-app', t('enterApp'));
+// Install invitation inside closing
+const card = document.getElementById('ob-close-install');
+if (installAvailable() && !pwaDismissActive()) {
+setText('ob-close-install-title', h.install_headline || t('pwaTitle'));
+setText('ob-close-install-sub', h.install_subtitle || t('pwaSub'));
+card.hidden = false;
+} else {
+card.hidden = true;
+}
+// Post-onboarding push opt-in
+const pushBlock = document.getElementById('ob-push-optin');
+if (pushBlock) {
+const show = pushSupported() && Notification.permission === 'default' && !obPushChoice();
+if (show) {
+setText('ob-push-optin-title', t('pushOptinTitle'));
+setText('ob-push-optin-sub', t('pushOptinSub'));
+setText('ob-push-btn-enable', t('pushBtnEnable'));
+setText('ob-push-btn-dismiss', t('pushBtnDismiss'));
+}
+pushBlock.hidden = !show;
+}
+}
+
+// ---------- Push opt-in decision made during onboarding closing step ----------
+function obPushChoiceKey() { return `hf_push_choice_${state.slug}`; }
+function obPushChoice() { try { return localStorage.getItem(obPushChoiceKey()); } catch (e) { return null; } }
+function setObPushChoice(v) { try { localStorage.setItem(obPushChoiceKey(), v); } catch (e) {} }
+async function obEnablePush() {
+await enablePushNotifications();
+setObPushChoice('granted');
+const pushBlock = document.getElementById('ob-push-optin');
+if (pushBlock) pushBlock.hidden = true;
+}
+function obDismissPush() {
+setObPushChoice('dismissed');
+try { localStorage.setItem(`hf_push_dismissed_${state.slug}`, String(Date.now() + 7 * 24 * 60 * 60 * 1000)); } catch (e) {}
+const pushBlock = document.getElementById('ob-push-optin');
+if (pushBlock) pushBlock.hidden = true;
 }
 
 // ---------- Events ----------
 async function logEvent(eventType, extra = {}) {
 if (!state.hotel) return;
 const payload = {
-hotel_id: state.hotel.id,
 guest_lead_id: state.guestLeadId,
 event_type: eventType,
 page_view: window.location.href,
-timestamp: new Date().toISOString(),
 ...extra,
 };
-await apiFetch('/api/guest/events', {
+await apiFetch(`/api/guest/${state.slug}/events`, {
 method: 'POST',
 body: JSON.stringify(payload),
 }).catch(() => {});
@@ -1459,28 +3703,223 @@ if (!wasOpen) item.classList.add('open');
 }
 
 // ---------- Language ----------
+// Legacy 2-way toggle (kept for compat); the UI now opens a menu (toggleLanguageMenu)
+// listing only hotel.supported_languages, but falls back to this behavior if just one/two.
 function toggleLanguage() {
 state.currentLang = state.currentLang === 'es' ? 'en' : 'es';
 localStorage.setItem(`hf_lang_${state.slug}`, state.currentLang);
 renderHome();
 logEvent('language_change', { language: state.currentLang });
 }
+function selectLanguage(lang) {
+if (!i18n[lang]) return;
+state.currentLang = lang;
+localStorage.setItem(`hf_lang_${state.slug}`, lang);
+closeLanguageMenu();
+renderHome();
+logEvent('language_change', { language: lang });
+}
+function toggleLanguageMenu() {
+const langs = supportedLangs();
+// Only one supported language: nothing to switch to, so hide the control entirely (handled in renderHome)
+if (langs.length <= 1) return;
+if (langs.length === 2) {
+// Two languages: keep the fast single-tap toggle behavior
+selectLanguage(langs.find(l => l !== state.currentLang) || langs[0]);
+return;
+}
+const overlay = document.getElementById('lang-menu-overlay');
+const menu = document.getElementById('lang-menu');
+if (!overlay || !menu) return;
+menu.innerHTML = langs.map(l => `
+<button class="lang-menu-item${l === state.currentLang ? ' active' : ''}" onclick="selectLanguage('${l}')">
+<span>${escapeHtml(LANG_NAMES[l] || l)}</span>
+${l === state.currentLang ? '✓' : ''}
+</button>`).join('');
+overlay.classList.remove('hidden');
+}
+function closeLanguageMenu() {
+const overlay = document.getElementById('lang-menu-overlay');
+if (overlay) overlay.classList.add('hidden');
+}
 
-// ---------- PWA ----------
+// ---------- PWA install ----------
+function logInstallEvent(event) {
+apiFetch(`/api/guest/${state.slug}/install-event`, {
+method: 'POST',
+body: JSON.stringify({ guest_lead_id: state.guestLeadId ? Number(state.guestLeadId) : null, event }),
+}).catch(() => {});
+}
+
+// Show/hide install affordances according to current state
+function refreshInstallUI() {
+const show = installAvailable() && !pwaDismissActive();
+const h = state.hotel || {};
+
+// Welcome hero install button
+const wBtn = document.getElementById('btn-install-welcome');
+if (wBtn) {
+if (show) { wBtn.hidden = false; wBtn.removeAttribute('hidden'); wBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg> ' + t('btnInstall'); }
+else { wBtn.hidden = true; wBtn.setAttribute('hidden', ''); }
+}
+
+// Home banner
+const banner = document.getElementById('pwa-banner');
+if (banner) {
+setText('pwa-banner-title', h.install_headline || t('pwaBannerTitle'));
+setText('pwa-banner-sub', h.install_subtitle || t('pwaBannerSub'));
+banner.classList.toggle('hidden', !show);
+}
+
+// Closing card
+const card = document.getElementById('ob-close-install');
+if (card && !card.hidden && !show) card.hidden = true;
+}
+
+function hideAllInstallUI() {
+const wBtn = document.getElementById('btn-install-welcome');
+if (wBtn) { wBtn.hidden = true; wBtn.setAttribute('hidden', ''); }
+const banner = document.getElementById('pwa-banner');
+if (banner) banner.classList.add('hidden');
+const card = document.getElementById('ob-close-install');
+if (card) card.hidden = true;
+closeIosSheet();
+}
+
 function dismissPwaBanner() {
 document.getElementById('pwa-banner').classList.add('hidden');
-state.pwaDismissed = true;
+// Persist dismissal for 24h
+try {
+localStorage.setItem(`hf_pwa_dismissed_${state.slug}`, String(Date.now() + 24 * 60 * 60 * 1000));
+} catch (e) {}
+logInstallEvent('dismissed');
 }
 
 async function installPwa() {
-if (!state.deferredPrompt) return;
+// iOS has no beforeinstallprompt -> show instructions sheet
+if (state.isIOS && !state.deferredPrompt) {
+openIosSheet();
+return;
+}
+if (!state.deferredPrompt) {
+openIosSheet(); // generic fallback with visual instructions
+return;
+}
+logInstallEvent('prompt_shown');
 state.deferredPrompt.prompt();
-const { outcome } = await state.deferredPrompt.userChoice;
+let outcome = 'dismissed';
+try { outcome = (await state.deferredPrompt.userChoice).outcome; } catch (e) {}
+logInstallEvent(outcome === 'accepted' ? 'accepted' : 'dismissed');
 if (outcome === 'accepted') {
-showToast(state.currentLang === 'es' ? '¡App instalada!' : 'App installed!');
+showToast(t('installGesture'));
 }
 state.deferredPrompt = null;
-document.getElementById('pwa-banner').classList.add('hidden');
+state.canInstall = false;
+refreshInstallUI();
+}
+
+// ---------- Push notifications opt-in ----------
+function urlBase64ToUint8Array(base64String) {
+const padding = '='.repeat((4 - base64String.length % 4) % 4);
+const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+const rawData = atob(base64);
+const outputArray = new Uint8Array(rawData.length);
+for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+return outputArray;
+}
+function pushSupported() {
+return ('PushManager' in window) && ('Notification' in window) && ('serviceWorker' in navigator);
+}
+function pushDismissActive() {
+try {
+const raw = localStorage.getItem(`hf_push_dismissed_${state.slug}`);
+if (!raw) return false;
+const until = parseInt(raw, 10);
+if (isNaN(until)) return false;
+if (Date.now() > until) { localStorage.removeItem(`hf_push_dismissed_${state.slug}`); return false; }
+return true;
+} catch (e) { return false; }
+}
+function pushAlreadyOn() {
+try { return localStorage.getItem(`hf_push_on_${state.slug}`) === '1'; } catch (e) { return false; }
+}
+function shouldShowPushCard() {
+if (!pushSupported()) return false;
+if (Notification.permission !== 'default') return false;
+// If the guest already made a choice during onboarding closing, respect it.
+// 'granted' => already subscribed (pushAlreadyOn below also covers this).
+// 'dismissed' => pushDismissActive() below enforces the 7-day cool-off set by obDismissPush().
+if (obPushChoice() === 'granted') return false;
+if (pushDismissActive()) return false;
+if (pushAlreadyOn()) return false;
+if (state.isIOS && !state.isStandalone) return false;
+return true;
+}
+function refreshPushUI() {
+const card = document.getElementById('push-optin-card');
+if (!card) return;
+card.classList.toggle('hidden', !shouldShowPushCard());
+}
+function hidePushCard() {
+const card = document.getElementById('push-optin-card');
+if (!card) return;
+card.classList.add('fade-out-push');
+setTimeout(() => card.classList.add('hidden'), 300);
+}
+function dismissPushCard() {
+hidePushCard();
+try { localStorage.setItem(`hf_push_dismissed_${state.slug}`, String(Date.now() + 7 * 24 * 60 * 60 * 1000)); } catch (e) {}
+}
+async function enablePushNotifications() {
+try {
+const perm = await Notification.requestPermission();
+if (perm !== 'granted') {
+hidePushCard();
+try { localStorage.setItem(`hf_push_dismissed_${state.slug}`, String(Date.now() + 30 * 24 * 60 * 60 * 1000)); } catch (e) {}
+return;
+}
+const reg = await navigator.serviceWorker.ready;
+const keyResp = await apiFetch(`/api/guest/${state.slug}/push/public-key`);
+if (!keyResp || !keyResp.public_key) throw new Error('missing public key');
+const sub = await reg.pushManager.subscribe({
+userVisibleOnly: true,
+applicationServerKey: urlBase64ToUint8Array(keyResp.public_key)
+});
+const subJson = sub.toJSON();
+const res = await apiFetch(`/api/guest/${state.slug}/push/subscribe`, {
+method: 'POST',
+body: JSON.stringify({
+endpoint: subJson.endpoint,
+keys: subJson.keys,
+guest_lead_id: state.guestLeadId ? Number(state.guestLeadId) : null,
+lang: state.currentLang
+})
+});
+if (!res || res.ok !== true) throw new Error('subscribe failed');
+try { localStorage.setItem(`hf_push_on_${state.slug}`, '1'); } catch (e) {}
+showToast(t('pushToastOn'));
+hidePushCard();
+} catch (err) {
+console.warn('Push subscribe error:', err);
+showToast(t('pushToastErr'));
+}
+}
+
+// ---------- iOS bottom sheet ----------
+function openIosSheet() {
+const h = state.hotel || {};
+setText('ios-sheet-title', h.install_headline || t('iosTitle'));
+setText('ios-sheet-sub', h.install_subtitle || t('iosSub'));
+document.getElementById('ios-step-1').innerHTML = t('iosStep1');
+document.getElementById('ios-step-2').innerHTML = t('iosStep2');
+setText('ios-sheet-close', t('iosClose'));
+document.getElementById('ios-sheet-backdrop').classList.add('show');
+document.getElementById('ios-sheet').classList.add('show');
+logInstallEvent('prompt_shown');
+}
+function closeIosSheet() {
+document.getElementById('ios-sheet-backdrop').classList.remove('show');
+document.getElementById('ios-sheet').classList.remove('show');
 }
 
 // ---------- Utils ----------
@@ -1498,8 +3937,25 @@ toast.classList.add('show');
 setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
+// Guía no disponible (trial vencido / hotel suspendido) — pantalla amable sin contenido
+function showUnavailable(h) {
+const ls = document.getElementById('loading-screen');
+if (ls) ls.classList.add('fade-out');
+document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+if (h.primary_color) document.documentElement.style.setProperty('--primary', h.primary_color);
+const div = document.createElement('div');
+div.className = 'error-container';
+div.innerHTML = `
+${h.logo_url ? `<img src="${escapeHtml(h.logo_url)}" alt="" style="max-width:96px;max-height:64px;object-fit:contain;margin-bottom:16px" onerror="this.remove()">` : ''}
+<h2>${escapeHtml(h.nombre || '')}</h2>
+<p>${t('unavailableMsg')}</p>
+`;
+document.body.appendChild(div);
+}
+
 function showError() {
-document.getElementById('loading-screen').classList.add('fade-out');
+const ls = document.getElementById('loading-screen');
+if (ls) ls.classList.add('fade-out');
 document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
 const div = document.createElement('div');
 div.className = 'error-container';
@@ -1518,8 +3974,9 @@ const overlay = document.getElementById('popup-overlay');
 const content = document.getElementById('popup-content');
 let html = '';
 if (popup.image_url) html += `<img class="popup-img" src="${escapeHtml(popup.image_url)}" alt="">`;
-html += `<div class="popup-body"><h3>${escapeHtml(popup.title)}</h3>`;
-if (popup.message) html += `<p>${escapeHtml(popup.message)}</p>`;
+html += `<div class="popup-body"><h3>${escapeHtml(ct(popup, 'title'))}</h3>`;
+const popupMsg = ct(popup, 'message');
+if (popupMsg) html += `<p>${escapeHtml(popupMsg)}</p>`;
 if (popup.button_text && popup.button_url) html += `<a class="post-card-btn" href="${escapeHtml(popup.button_url)}" target="_blank" style="width:100%;justify-content:center">${escapeHtml(popup.button_text)}</a>`;
 html += '</div>';
 content.innerHTML = html;
@@ -1536,14 +3993,53 @@ function updateContactBar() {
   bar.classList.toggle('hidden-bar', !isHome);
 }
 
-// Compact header glass morphism on scroll
-window.addEventListener('scroll', function() {
-  const header = document.getElementById('home-header');
-  if (header) {
-    header.classList.toggle('scrolled', window.scrollY > 40);
+// Compact header glass morphism on scroll — no longer needed (hero is unified)
+// but keep #home-header ref for view-active reset.
+
+// ---------- Scroll reveal (home sections) ----------
+function initScrollReveal() {
+  if (state.revealInit) return;
+  const targets = document.querySelectorAll('#home-view .reveal');
+  if (!targets.length) return;
+  state.revealInit = true;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion || !('IntersectionObserver' in window)) {
+    targets.forEach(el => el.classList.add('in-view'));
+    return;
   }
-}, { passive: true });
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in-view');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  targets.forEach((el, i) => {
+    el.style.transitionDelay = (Math.min(i, 6) * 0.06) + 's';
+    observer.observe(el);
+  });
+}
 </script>
+
+<!-- iOS Install Bottom Sheet -->
+<div class="ios-sheet-backdrop" id="ios-sheet-backdrop" onclick="closeIosSheet()"></div>
+<div class="ios-sheet" id="ios-sheet">
+<div class="ios-sheet-grip"></div>
+<h3 id="ios-sheet-title"></h3>
+<p class="ios-sheet-sub" id="ios-sheet-sub"></p>
+<div class="ios-step">
+<div class="ios-step-num">1</div>
+<div class="ios-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v13"/><polyline points="8 6 12 2 16 6"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg></div>
+<div class="ios-step-text" id="ios-step-1"></div>
+</div>
+<div class="ios-step">
+<div class="ios-step-num">2</div>
+<div class="ios-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+<div class="ios-step-text" id="ios-step-2"></div>
+</div>
+<button class="ios-sheet-close" id="ios-sheet-close" onclick="closeIosSheet()"></button>
+</div>
 
 <!-- Popup Modal -->
 <div class="popup-overlay hidden" id="popup-overlay" onclick="closePopup()">
@@ -1551,6 +4047,23 @@ window.addEventListener('scroll', function() {
 <div class="popup-close" onclick="closePopup()">✕</div>
 <div id="popup-content"></div>
 </div>
+</div>
+
+<!-- Language menu -->
+<div class="lang-menu-overlay hidden" id="lang-menu-overlay" onclick="closeLanguageMenu()">
+<div class="lang-menu" id="lang-menu" onclick="event.stopPropagation()"></div>
+</div>
+
+<!-- Gallery Lightbox -->
+<div class="lightbox-overlay hidden" id="lightbox-overlay" onclick="closeLightbox()">
+<button class="lightbox-close" onclick="event.stopPropagation();closeLightbox()" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+<button class="lightbox-nav lightbox-prev" onclick="event.stopPropagation();lightboxPrev()" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+<div class="lightbox-stage" id="lightbox-stage" onclick="event.stopPropagation()">
+<img id="lightbox-img" src="" alt="">
+<div class="lightbox-caption" id="lightbox-caption"></div>
+<div class="lightbox-counter" id="lightbox-counter"></div>
+</div>
+<button class="lightbox-nav lightbox-next" onclick="event.stopPropagation();lightboxNext()" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
 </div>
 
 <!-- Contact Bar - outside all views for true fixed positioning -->
@@ -1568,5 +4081,25 @@ window.addEventListener('scroll', function() {
 <span class="contact-label">Email</span>
 </a>
 </div>
+
+<!-- Urban theme: bottom tab nav (always in DOM, shown only via body[data-theme=urban]) -->
+<nav class="bottom-nav" id="bottom-nav" aria-label="Navegación">
+<button class="bottom-nav-item active" id="bn-tab-home" data-tab="home" onclick="applyUrbanTab('home')" aria-current="page">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7"/><path d="M5 10v10a1 1 0 001 1h4a1 1 0 001-1v-4h2v4a1 1 0 001 1h4a1 1 0 001-1V10"/></svg>
+<span id="bn-label-home"></span>
+</button>
+<button class="bottom-nav-item" id="bn-tab-explore" data-tab="explore" onclick="applyUrbanTab('explore')">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+<span id="bn-label-explore"></span>
+</button>
+<button class="bottom-nav-item" id="bn-tab-offers" data-tab="offers" onclick="applyUrbanTab('offers')">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41L13.42 20.58a2 2 0 01-2.83 0L2.83 12.83A2 2 0 012 11.41V4a2 2 0 012-2h7.41a2 2 0 011.42.59l8.34 8.34a2 2 0 010 2.83z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
+<span id="bn-label-offers"></span>
+</button>
+<button class="bottom-nav-item" id="bn-tab-info" data-tab="info" onclick="applyUrbanTab('info')">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+<span id="bn-label-info"></span>
+</button>
+</nav>
 </body>
 </html>
