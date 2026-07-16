@@ -13,6 +13,10 @@ __pycache__/
 static/uploads/*
 !static/uploads/.gitkeep
 static/qr/*.png
+static/qr/*.svg
+
+# Web Push VAPID keys (autogeneradas en dev; en prod usar env vars)
+vapid_keys.json
 
 # IDE
 .vscode/
@@ -22,3 +26,10 @@ static/qr/*.png
 .DS_Store
 Thumbs.db
 venv/
+.venv/
+
+# Herramientas locales / artefactos de sesión
+.playwright-mcp/
+/scratch_*
+/guest-step2.png
+/guest-welcome.png
