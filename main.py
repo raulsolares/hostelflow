@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import Optional, List
 
 import re
+import socket
+import time
 import unicodedata
 
 import bleach
@@ -71,6 +73,13 @@ STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID", "")
 BILLING_ENABLED = bool(STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET and STRIPE_PRICE_ID)
 if STRIPE_SECRET_KEY:
     stripe.api_key = STRIPE_SECRET_KEY
+
+# Dominio personalizado por hotel (P7): destino del CNAME que el cliente
+# apunta hacia nuestra plataforma. Vacío en dev => no se sugiere ningún target.
+APP_PRIMARY_DOMAIN = os.getenv("APP_PRIMARY_DOMAIN", "")
+# Fallback de precio mensual (USD) para el overview SaaS cuando billing no
+# está habilitado o Stripe.Price.retrieve falla (P7 tarea 2).
+PLAN_PRICE_FALLBACK = float(os.getenv("PLAN_PRICE_FALLBACK", "0") or 0)
 
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = BASE_DIR / "templates"
@@ -413,6 +422,48 @@ def _validate_supported_languages(v: Optional[str]) -> Optional[str]:
     return ",".join(langs)
 
 
+# ── Dominio personalizado por hotel (P7) ────────────────────────────────────
+
+# Hostname: uno o más labels alfanuméricos (con guiones internos), separados
+# por puntos — exige al menos un punto (rechaza "localhost", "midominio").
+_CUSTOM_DOMAIN_RE = re.compile(
+    r"^(?!-)[a-z0-9-]{1,63}(?<!-)(\.(?!-)[a-z0-9-]{1,63}(?<!-))+$"
+)
+
+
+def _normalize_custom_domain(v: Optional[str]) -> Optional[str]:
+    """Normaliza un dominio recibido del cliente: minúsculas, sin protocolo,
+    sin path/query, sin puerto. None/"" → None (permite quitar el dominio)."""
+    if v is None:
+        return None
+    v = v.strip()
+    if v == "":
+        return None
+    v = v.lower()
+    v = re.sub(r"^[a-z][a-z0-9+.-]*://", "", v)  # esquema (http://, https://, ...)
+    v = v.split("/", 1)[0]
+    v = v.split("?", 1)[0]
+    v = v.split("#", 1)[0]
+    v = v.split(":", 1)[0]  # puerto
+    return v.strip()
+
+
+def _validate_custom_domain(db: Session, hotel_id: Optional[int], v: Optional[str]) -> Optional[str]:
+    """Normaliza + valida formato + unicidad entre hoteles (P7). 422 si el
+    formato no es un hostname válido; 409 si otro hotel ya lo usa."""
+    normalized = _normalize_custom_domain(v)
+    if normalized is None:
+        return None
+    if " " in normalized or not _CUSTOM_DOMAIN_RE.match(normalized):
+        raise HTTPException(status_code=422, detail="Dominio no válido")
+    q = db.query(Hotel).filter(Hotel.custom_domain == normalized)
+    if hotel_id is not None:
+        q = q.filter(Hotel.id != hotel_id)
+    if q.first():
+        raise HTTPException(status_code=409, detail="Ese dominio ya está en uso")
+    return normalized
+
+
 # ── Pydantic schemas ──────────────────────────────────────────────────────
 
 class LoginRequest(BaseModel):
@@ -482,6 +533,8 @@ class HotelUpdate(BaseModel):
     header_style: Optional[str] = None
     header_config: Optional[dict] = None
     supported_languages: Optional[str] = None
+    # Dominio personalizado (P7). Normalizado/validado en _apply_hotel_field.
+    custom_domain: Optional[str] = None
 
 
 class HotelSuperUpdate(HotelUpdate):
@@ -823,8 +876,8 @@ class NotificationCreate(BaseModel):
 
 # ── Helpers ────────────────────────────────────────────────────────────────
 
-def hotel_to_dict(h: Hotel) -> dict:
-    return {
+def hotel_to_dict(h: Hotel, include_private: bool = True) -> dict:
+    d = {
         "id": h.id, "nombre": h.nombre, "slug": h.slug,
         "logo_url": h.logo_url, "cover_url": h.cover_url,
         "primary_color": h.primary_color, "secondary_color": h.secondary_color,
@@ -860,6 +913,12 @@ def hotel_to_dict(h: Hotel) -> dict:
         # este serializer lo usa también GET /api/guest/{slug}.
         "has_subscription": bool(h.stripe_subscription_id),
     }
+    # custom_domain (P7): dato de configuración interna del hotel — NUNCA se
+    # expone en el API público del guest (GET /api/guest/{slug} pasa
+    # include_private=False).
+    if include_private:
+        d["custom_domain"] = h.custom_domain
+    return d
 
 
 def module_to_dict(m: ContentModule) -> dict:
@@ -1347,10 +1406,74 @@ def seed_data():
                 dict(image_url="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=900&h=600&fit=crop", caption="Spa regenerativo", sort_order=6, is_active=True),
             ],
         )
-        print("[SEED] 4/4 One Active")
+        print("[SEED] 4/6 One Active")
 
         # ════════════════════════════════════════════
-        # 5) Usuarios de permisos multi-hotel + hotel demo con trial vencido (P5)
+        # 5) VILLA SERENA — Boutique tranquilo (theme "serene", P7)
+        # ════════════════════════════════════════════
+        _create_hotel(db, h=dict(nombre="Villa Serena", slug="villa-serena", theme="serene",
+                plan="active",
+                logo_url="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=200&h=200&fit=crop",
+                cover_url="https://images.unsplash.com/photo-1615529182904-14819c35db37?w=1200&h=600&fit=crop",
+                # Sin overrides de color/fuente: villa-serena demuestra la paleta
+                # pura del theme serene (navy #041920 + taupe, Source Serif 4)
+                description="Villa boutique de 12 habitaciones entre olivos centenarios, pensada para desacelerar: spa de aguas termales, cocina de temporada y silencio de sobra.",
+                whatsapp="+34611223344", email="reservas@villa-serena.com", phone="+34611223344",
+                address="Camino de los Olivos 8, Ronda, Málaga 29400, España",
+                privacy_policy="Cuidamos tus datos con la misma calma con la que cuidamos tu estancia.",
+                default_language="es", is_active=True, font_family="Inter",
+                welcome_headline="Bienvenido a Villa Serena", welcome_subtitle="Un lugar para respirar despacio.",
+                onboarding_enabled=True, onboarding_title="Prepara tu llegada", onboarding_subtitle="Cuéntanos un poco de ti y tendremos todo listo, sin prisa.",
+                pwa_enabled=True, pwa_short_name="Villa Serena", install_headline="Lleva la calma contigo", install_subtitle="Horarios de spa, reservas y la guía completa en tu bolsillo.",
+                header_style="classic", supported_languages="es,en"),
+            modules=[
+                dict(module_type="wifi", title="WiFi de la Villa", subtitle="Disponible en toda la propiedad", content_html="<p><strong>Red:</strong> VillaSerena_Guest</p><p><strong>Contraseña:</strong> Serena2026</p><p>Conexión estable en habitaciones, terrazas y zonas comunes.</p>", icon="wifi", sort_order=1, is_active=True, audience_stage="all"),
+                dict(module_type="hours", title="Horarios", subtitle="Ritmo de la casa", content_html="<p><strong>Check-in:</strong> 15:00</p><p><strong>Check-out:</strong> 12:00</p><p><strong>Desayuno:</strong> 8:00-11:00</p><p><strong>Spa de aguas termales:</strong> 9:00-20:00</p></p>", icon="clock", sort_order=2, is_active=True, audience_stage="all"),
+                dict(module_type="rules", title="Convivencia Serena", subtitle="Para que todos descansen", content_html="<p><strong>Horario de silencio:</strong> 22:00-08:00</p><p><strong>Zonas de spa:</strong> descalzos y en voz baja</p><p><strong>Mascotas:</strong> No permitidas, para respetar el descanso de todos</p>", icon="alert-circle", sort_order=3, is_active=True, audience_stage="all"),
+                dict(module_type="location", title="Cómo llegar", subtitle="Entre olivos", content_html="<p><strong>Dirección:</strong> Camino de los Olivos 8, Ronda</p><p><strong>Desde Málaga:</strong> 1h 15min en auto</p><p><strong>Estacionamiento:</strong> Privado y gratuito</p>", icon="map-pin", sort_order=4, is_active=True, audience_stage="pre_arrival"),
+                dict(module_type="services", title="Spa de Aguas Termales", subtitle="Circuito de bienestar", content_html="<p><strong>Circuito termal</strong> con piscina climatizada, sauna de piedra y sala de sal</p><p><strong>Masajes</strong> con aceites de romero y olivo</p><p><strong>Yoga al amanecer</strong> en la terraza de olivos, martes y sábados</p>", icon="star", sort_order=5, is_active=True, audience_stage="in_stay"),
+                dict(module_type="dining", title="Desayuno de Temporada", subtitle="Del huerto a la mesa", content_html="<p><strong>Buffet de temporada</strong> con producto de la huerta propia</p><p><strong>Horario:</strong> 8:00-11:00 en el patio de naranjos</p><p><strong>Opción en habitación:</strong> Disponible sin costo adicional</p>", icon="utensils", sort_order=6, is_active=True, audience_stage="in_stay"),
+                dict(module_type="events", title="Momentos Serena", subtitle="Actividades suaves", content_html="<p><strong>Martes y sábado:</strong> Yoga al amanecer 7:30</p><p><strong>Jueves:</strong> Cata de aceites de oliva 18:00</p><p><strong>Domingo:</strong> Paseo guiado por el olivar 10:00</p>", icon="calendar", sort_order=7, is_active=True, audience_stage="in_stay"),
+                dict(module_type="checkout", title="Checkout Sereno", subtitle="Una última pausa", content_html="<p><strong>Check-out:</strong> 12:00</p><p><strong>Late checkout:</strong> Sujeto a disponibilidad</p><p><strong>Guarda equipaje:</strong> Gratis, con acceso al spa hasta tu salida</p>", icon="log-out", sort_order=8, is_active=True, audience_stage="pre_checkout"),
+            ],
+            faqs=[
+                dict(question="¿El spa está incluido en la tarifa?", answer="El circuito termal (piscina, sauna y sala de sal) está incluido. Los masajes y tratamientos tienen costo adicional.", sort_order=1, is_active=True),
+                dict(question="¿Hay transporte desde Málaga?", answer="Podemos organizar traslado privado por 60€ (hasta 3 personas). Solicítalo con 48h de anticipación.", sort_order=2, is_active=True),
+                dict(question="¿Aceptan niños?", answer="Recomendamos Villa Serena para mayores de 14 años, dado el enfoque de descanso y silencio de la propiedad.", sort_order=3, is_active=True),
+                dict(question="¿Puedo reservar el spa fuera del horario de huéspedes?", answer="El circuito termal es exclusivo para huéspedes de 9:00 a 20:00. Los masajes pueden reservarse hasta las 21:00.", sort_order=4, is_active=True),
+                dict(question="¿Hay opciones vegetarianas?", answer="Sí, todo el menú de desayuno y cena tiene alternativa vegetariana con producto de nuestra huerta.", sort_order=5, is_active=True),
+            ],
+            promos=[
+                dict(title="Ritual de Aguas Termales", description="Circuito termal completo + masaje de 60 min con aceite de romero + infusión de cierre en la terraza.", price_text="120€ por persona", cta_label="Reservar ritual", cta_link="https://wa.me/34611223344?text=Quiero%20el%20Ritual%20de%20Aguas%20Termales", is_active=True,
+                     image_url="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=900&h=600&fit=crop"),
+                dict(title="Escapada Serena", description="2 noches + desayuno de temporada + circuito termal + cata de aceites de oliva.", price_text="390€ por pareja", cta_label="Reservar escapada", cta_link="https://wa.me/34611223344?text=Quiero%20la%20Escapada%20Serena", is_active=True,
+                     image_url="https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=900&h=600&fit=crop"),
+            ],
+            posts=[
+                dict(section="restaurant", title="Comedor de Naranjos", subtitle="Cocina de temporada", image_url="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop", content_html="<p><strong>Comedor de Naranjos</strong> — cocina de temporada con producto de nuestra huerta.</p><p><strong>Horario:</strong> desayuno 8:00-11:00, cena 19:30-22:00</p><p>Menú vegetariano disponible cada noche.</p>", button_text="Reservar mesa", button_url="https://wa.me/34611223344?text=Reservar%20Comedor%20de%20Naranjos", icon="🍽️", sort_order=1, is_active=True),
+                dict(section="restaurant", title="Bar de Aceites", subtitle="Cata guiada", image_url="https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&h=400&fit=crop", content_html="<p>Cata guiada de aceites de oliva de la finca, jueves 18:00.</p><p>Incluye pan artesanal y quesos locales.</p>", button_text="Reservar cata", button_url="https://wa.me/34611223344?text=Cata%20de%20aceites", icon="🫒", sort_order=2, is_active=True),
+                dict(section="tour", title="Paseo por el Olivar", subtitle="Caminata guiada suave", image_url="https://images.unsplash.com/photo-1445264718234-980398b09442?w=600&h=400&fit=crop", content_html="<p><strong>Duración:</strong> 1h, domingos 10:00</p><p>Caminata tranquila entre olivos centenarios con nuestro jardinero.</p>", button_text="Reservar paseo", button_url="https://wa.me/34611223344?text=Paseo%20por%20el%20olivar", icon="🌿", sort_order=1, is_active=True),
+                dict(section="tour", title="Yoga al Amanecer", subtitle="Terraza de olivos", image_url="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&h=400&fit=crop", content_html="<p><strong>Martes y sábados 7:30</strong></p><p>Sesión suave de 45 min, todos los niveles. Esteras incluidas.</p>", button_text="Reservar plaza", button_url="https://wa.me/34611223344?text=Yoga%20al%20amanecer", icon="🧘", sort_order=2, is_active=True),
+                dict(section="guide", title="Ronda, Ciudad Blanca", subtitle="15 min en auto", image_url="https://images.unsplash.com/photo-1509840841025-9088ba78a826?w=600&h=400&fit=crop", content_html="<p>El Puente Nuevo y el casco antiguo, a 15 minutos de la villa.</p><p><strong>Recomendación:</strong> visitar al atardecer para la mejor luz.</p>", button_text="Cómo llegar", button_url="https://maps.google.com/?q=Ronda+Malaga", icon="🏛️", sort_order=1, is_active=True),
+                dict(section="guide", title="Bodegas de la Serranía", subtitle="Ruta del vino", image_url="https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=600&h=400&fit=crop", content_html="<p>Bodegas boutique a 20 min. Podemos gestionar la reserva y traslado.</p>", button_text="Consultar", button_url="https://wa.me/34611223344?text=Ruta%20del%20vino", icon="🍷", sort_order=2, is_active=True),
+            ],
+            popup=dict(title="Bienvenido a Villa Serena", message="Estás en tu tiempo. Descubre el spa termal, el desayuno de temporada y los paseos por el olivar.", button_text="Ver experiencias", button_url="#promos", trigger_type="after_seconds", trigger_seconds=4, is_active=True, sort_order=1),
+            qr_list=[dict(name="Recepción", source_type="lobby", code="VS-LOBBY", url_generated="/g/villa-serena?source=lobby", is_active=True), dict(name="Habitación", source_type="room", code="VS-ROOM", url_generated="/g/villa-serena?source=room", is_active=True)],
+            admins=[("admin@villa-serena.com", "Elena Anfitriona")],
+            pw=pw,
+            gallery=[
+                dict(image_url="https://images.unsplash.com/photo-1615529182904-14819c35db37?w=900&h=600&fit=crop", caption="Fachada entre olivos", sort_order=1, is_active=True),
+                dict(image_url="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&h=600&fit=crop", caption="Habitación en tonos cálidos", sort_order=2, is_active=True),
+                dict(image_url="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=900&h=600&fit=crop", caption="Spa de aguas termales", sort_order=3, is_active=True),
+                dict(image_url="https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=900&h=600&fit=crop", caption="Baño de madera y luz natural", sort_order=4, is_active=True),
+                dict(image_url="https://images.unsplash.com/photo-1445264718234-980398b09442?w=900&h=600&fit=crop", caption="Olivar centenario", sort_order=5, is_active=True),
+                dict(image_url="https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=900&h=600&fit=crop", caption="Bar de aceites y quesos locales", sort_order=6, is_active=True),
+            ],
+        )
+        print("[SEED] 5/6 Villa Serena")
+
+        # ════════════════════════════════════════════
+        # 6) Usuarios de permisos multi-hotel + hotel demo con trial vencido (P5)
         # ════════════════════════════════════════════
         casa_del_mar = db.query(Hotel).filter(Hotel.slug == "casa-del-mar").first()
         atico = db.query(Hotel).filter(Hotel.slug == "atico-corporativo").first()
@@ -1402,7 +1525,7 @@ def seed_data():
         )
         db.add(vencida_admin); db.flush()
         db.add(UserHotel(user_id=vencida_admin.id, hotel_id=hotel_vencida.id, role="admin"))
-        print("[SEED] 5/5 Usuarios permisos multi-hotel + Hotel Prueba Vencida")
+        print("[SEED] 6/6 Usuarios permisos multi-hotel + Hotel Prueba Vencida")
 
         db.commit()
         print("Seed data created successfully")
@@ -1535,7 +1658,7 @@ def get_guest_app(slug: str, db: Session = Depends(get_db)):
         if theme and theme.css_content:
             theme_css_url = f"/api/theme/{hotel.theme_id}/css"
     return {
-        "hotel": hotel_to_dict(hotel),
+        "hotel": hotel_to_dict(hotel, include_private=False),
         "modules": [module_to_dict(m) for m in modules],
         "faqs": [faq_to_dict(f) for f in faqs],
         "promos": [promo_to_dict(p) for p in promos],
@@ -1944,9 +2067,10 @@ def get_hotel(request: Request, user: User = Depends(require_role(UserRole.super
     return hotel_to_dict(hotel)
 
 
-def _apply_hotel_field(hotel: Hotel, k: str, v):
+def _apply_hotel_field(hotel: Hotel, k: str, v, db: Optional[Session] = None):
     """Aplica un campo de HotelUpdate a la instancia, con validación/saneado
-    especial para custom_css, header_style, header_config y supported_languages (P4)."""
+    especial para custom_css, header_style, header_config, supported_languages
+    (P4) y custom_domain (P7)."""
     if k == "custom_css":
         v = sanitize_custom_css(v)  # P1-2 / SEC A2
     elif k == "header_style":
@@ -1955,6 +2079,8 @@ def _apply_hotel_field(hotel: Hotel, k: str, v):
         v = _validate_header_config(v)
     elif k == "supported_languages":
         v = _validate_supported_languages(v)
+    elif k == "custom_domain":
+        v = _validate_custom_domain(db, hotel.id, v)
     elif k == "plan":
         if v not in ("trial", "active", "suspended"):
             raise HTTPException(status_code=422, detail="plan inválido (trial|active|suspended)")
@@ -1965,7 +2091,7 @@ def _apply_hotel_field(hotel: Hotel, k: str, v):
 def update_hotel(data: HotelUpdate, request: Request, user: User = Depends(require_manager), db: Session = Depends(get_db)):
     hotel = db.query(Hotel).filter(Hotel.id == _resolve_hotel_id(user, request)).first()
     for k, v in data.model_dump(exclude_unset=True).items():
-        _apply_hotel_field(hotel, k, v)
+        _apply_hotel_field(hotel, k, v, db)
     db.commit()
     return hotel_to_dict(hotel)
 
@@ -2514,6 +2640,8 @@ def create_hotel(data: HotelUpdate, request: Request, user: User = Depends(requi
         payload["header_config"] = _validate_header_config(payload["header_config"])
     if "supported_languages" in payload:
         payload["supported_languages"] = _validate_supported_languages(payload["supported_languages"])
+    if "custom_domain" in payload:
+        payload["custom_domain"] = _validate_custom_domain(db, None, payload["custom_domain"])
     hotel = Hotel(nombre=nombre, slug=slug, is_active=True, **payload)
     db.add(hotel)
     db.commit()
@@ -2538,7 +2666,7 @@ def update_hotel_by_id(hotel_id: int, data: HotelSuperUpdate,
     if not hotel:
         raise HTTPException(status_code=404, detail="Hotel no encontrado")
     for k, v in data.model_dump(exclude_unset=True).items():
-        _apply_hotel_field(hotel, k, v)
+        _apply_hotel_field(hotel, k, v, db)
     db.commit()
     db.refresh(hotel)
     return hotel_to_dict(hotel)
@@ -2791,6 +2919,28 @@ def get_app_url(request: Request, user: User = Depends(require_role(UserRole.sup
     return {"slug": hotel.slug, "app_url": f"/g/{hotel.slug}"}
 
 
+@app.get("/api/admin/hotel/domain-status")
+def get_domain_status(request: Request, user: User = Depends(require_manager), db: Session = Depends(get_db)):
+    """Estado del dominio personalizado del hotel activo (P7): a qué debe
+    apuntar el CNAME y si resuelve por DNS. La verificación fina de
+    CNAME/TLS la hace el proxy de despliegue, no este endpoint."""
+    hotel = db.query(Hotel).filter(Hotel.id == _resolve_hotel_id(user, request)).first()
+    if not hotel:
+        raise HTTPException(status_code=404, detail="Hotel no encontrado")
+    domain = hotel.custom_domain
+    dns_ok = None
+    if domain:
+        try:
+            socket.setdefaulttimeout(2.0)
+            socket.getaddrinfo(domain, None)
+            dns_ok = True
+        except OSError:
+            dns_ok = False
+        finally:
+            socket.setdefaulttimeout(None)
+    return {"domain": domain, "expected_target": APP_PRIMARY_DOMAIN, "dns_ok": dns_ok}
+
+
 # ── Analytics ──────────────────────────────────────────────────────────────
 
 @app.get("/api/admin/analytics")
@@ -3009,6 +3159,106 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     return {"received": True}
 
 
+# ── SaaS overview (super_admin, solo lectura) ───────────────────────────────
+#
+# Dashboard de negocio para el super_admin: totales por plan, MRR (real vía
+# Stripe.Price si hay billing, si no una estimación por PLAN_PRICE_FALLBACK),
+# altas por mes y trials por vencer. GET puro, sin efectos secundarios.
+
+_MRR_PRICE_CACHE = {"amount": None, "currency": None, "ts": 0.0}
+_MRR_PRICE_CACHE_TTL = 300  # 5 min: evita golpear la API de Stripe en cada carga
+
+
+def _get_plan_unit_price():
+    """(amount, currency) del precio único de Stripe (STRIPE_PRICE_ID),
+    cacheado en memoria. None si billing no está habilitado o Stripe falla
+    (nunca se lanza excepción por Stripe caído — P7 tarea 2)."""
+    if not BILLING_ENABLED:
+        return None
+    now = time.time()
+    if _MRR_PRICE_CACHE["amount"] is not None and (now - _MRR_PRICE_CACHE["ts"]) < _MRR_PRICE_CACHE_TTL:
+        return (_MRR_PRICE_CACHE["amount"], _MRR_PRICE_CACHE["currency"])
+    try:
+        price = stripe.Price.retrieve(STRIPE_PRICE_ID)
+        amount = (price["unit_amount"] or 0) / 100
+        currency = price["currency"]
+        _MRR_PRICE_CACHE.update({"amount": amount, "currency": currency, "ts": now})
+        return (amount, currency)
+    except Exception:
+        return None
+
+
+@app.get("/api/admin/saas/overview")
+def saas_overview(user: User = Depends(require_role(UserRole.super_admin)), db: Session = Depends(get_db)):
+    hotels = db.query(Hotel).order_by(Hotel.created_at.desc()).all()
+
+    totals = {
+        "hotels": len(hotels),
+        "active": sum(1 for h in hotels if h.plan == "active"),
+        "trial": sum(1 for h in hotels if h.plan == "trial"),
+        "suspended": sum(1 for h in hotels if h.plan == "suspended"),
+        "with_subscription": sum(1 for h in hotels if h.stripe_subscription_id),
+    }
+
+    price = _get_plan_unit_price()
+    if price is not None:
+        amount, currency = price
+        mrr = {
+            "amount": round(amount * totals["with_subscription"], 2),
+            "currency": currency, "source": "stripe",
+        }
+    else:
+        mrr = {
+            "amount": round(PLAN_PRICE_FALLBACK * totals["with_subscription"], 2),
+            "currency": "usd", "source": "estimate",
+        }
+
+    # signups_by_month: últimos 12 meses (incluido el actual), con ceros donde no hubo altas.
+    now = datetime.utcnow()
+    month_keys = []
+    y, m = now.year, now.month
+    for _ in range(12):
+        month_keys.append(f"{y:04d}-{m:02d}")
+        m -= 1
+        if m == 0:
+            m = 12
+            y -= 1
+    month_keys.reverse()
+    counts = {k: 0 for k in month_keys}
+    for h in hotels:
+        if h.created_at:
+            key = f"{h.created_at.year:04d}-{h.created_at.month:02d}"
+            if key in counts:
+                counts[key] += 1
+    signups_by_month = [{"month": k, "count": counts[k]} for k in month_keys]
+
+    horizon = now + timedelta(days=7)
+    trials_expiring = [
+        {"id": h.id, "nombre": h.nombre, "slug": h.slug, "trial_ends_at": str(h.trial_ends_at)}
+        for h in hotels
+        if h.plan == "trial" and h.trial_ends_at and now <= h.trial_ends_at <= horizon
+    ]
+
+    hotels_out = []
+    for h in hotels:
+        leads_count = db.query(func.count(GuestLead.id)).filter(GuestLead.hotel_id == h.id).scalar()
+        hotels_out.append({
+            "id": h.id, "nombre": h.nombre, "slug": h.slug, "plan": h.plan or "active",
+            "trial_ends_at": str(h.trial_ends_at) if h.trial_ends_at else None,
+            "has_subscription": bool(h.stripe_subscription_id),
+            "created_at": str(h.created_at) if h.created_at else None,
+            "leads_count": leads_count,
+        })
+
+    return {
+        "totals": totals,
+        "mrr": mrr,
+        "signups_by_month": signups_by_month,
+        "trials_expiring": trials_expiring,
+        "hotels": hotels_out,
+    }
+
+
 # ── QR redirect ────────────────────────────────────────────────────────────
 
 @app.get("/api/qr/{code}")
@@ -3029,7 +3279,42 @@ def _load_html(filename: str) -> str:
         return f.read()
 
 
+# Caché simple {host: (slug|None, timestamp)} para no golpear la BD en cada
+# request a "/" (P7). TTL corto — un dominio recién configurado tarda como
+# mucho _CUSTOM_DOMAIN_CACHE_TTL segundos en empezar a servir el guest.
+_CUSTOM_DOMAIN_CACHE: dict = {}
+_CUSTOM_DOMAIN_CACHE_TTL = 60
+
+
+def _lookup_slug_by_host(host: str, db: Session) -> Optional[str]:
+    now = time.time()
+    cached = _CUSTOM_DOMAIN_CACHE.get(host)
+    if cached is not None and (now - cached[1]) < _CUSTOM_DOMAIN_CACHE_TTL:
+        return cached[0]
+    hotel = db.query(Hotel).filter(Hotel.custom_domain == host, Hotel.is_active == True).first()
+    slug = hotel.slug if hotel else None
+    _CUSTOM_DOMAIN_CACHE[host] = (slug, now)
+    return slug
+
+
 @app.get("/", response_class=HTMLResponse)
+def serve_root(request: Request, db: Session = Depends(get_db)):
+    """Sirve el admin por defecto; si el Host coincide con el custom_domain
+    de un hotel activo, sirve el guest de ese hotel inyectando
+    window.HF_SLUG antes de </head> (P7)."""
+    host = (request.headers.get("host") or "").split(":")[0].strip().lower()
+    slug = _lookup_slug_by_host(host, db) if host else None
+    if slug:
+        html = _load_html("guest.html")
+        inject = f"<script>window.HF_SLUG={json.dumps(slug)};</script>"
+        if "</head>" in html:
+            html = html.replace("</head>", inject + "</head>", 1)
+        else:
+            html = inject + html
+        return HTMLResponse(content=html)
+    return HTMLResponse(content=_load_html("admin.html"))
+
+
 @app.get("/admin", response_class=HTMLResponse)
 def serve_admin():
     return HTMLResponse(content=_load_html("admin.html"))

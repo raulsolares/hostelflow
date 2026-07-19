@@ -122,6 +122,12 @@ Resuelto en el trabajo premium (ver `PREMIUM_SPEC.md` §1). `_resolve_hotel_id(u
 
 ## P3 — Producto / premium
 
+### [x] P7-0 · Dominios personalizados, dashboard SaaS y theme Serene (2026-07-19)
+- **Dominio personalizado por hotel** (`Hotel.custom_domain`, único, normalizado y validado; nunca expuesto en el API del guest): `GET /` resuelve el header Host contra los dominios registrados (cache 60s) y sirve la app del huésped inyectando `window.HF_SLUG`; card en Configuración con instrucciones de CNAME hacia `APP_PRIMARY_DOMAIN` y verificación de DNS (`GET /api/admin/hotel/domain-status`). TLS a cargo del proxy de despliegue (Caddy/Cloudflare).
+- **Dashboard SaaS** (`GET /api/admin/saas/overview`, solo super_admin, SOLO lectura): totales por plan, suscripciones Stripe, MRR (precio real de Stripe con cache o `PLAN_PRICE_FALLBACK`), altas por mes (12m), trials por vencer (7 días) y tabla completa de hoteles sin acciones de administración.
+- **Theme "Serene"** (quinto theme, réplica del mockup Stitch "Serene Hospitality" / quiet luxury): crema `#fbf9f8`, navy `#041920`, taupe, Source Serif 4 + Plus Jakarta Sans, top bar con nombre serif centrado, hero como card inset con degradado navy y eyebrow, quick-actions tonales (navy + secondary-container), módulos como cards de lista suaves, promos con botón outline. Seed: hotel demo `villa-serena` sin overrides de color (paleta pura del theme). Fixes de revisión: el saludo desbordaba la card del hero (re-anclado a su geometría) y el seed pisaba el navy con marrones.
+- 204 tests verdes (13 nuevos en `test_p7_domains_saas.py`).
+
 ### [x] P6-0 · Pagos automatizados con Stripe (2026-07-19)
 - Un solo plan por suscripción con **cupones nativos de Stripe** (`allow_promotion_codes` en Checkout; los cupones se crean en el dashboard de Stripe). Facturas manuales (fuera del sistema).
 - `POST /api/admin/billing/checkout` (crea/reutiliza Customer, Checkout Session de suscripción), `GET /api/admin/billing/portal` (Customer Portal para tarjeta/cancelación), `POST /api/webhooks/stripe` (firma verificada, idempotente): `checkout.session.completed` → active; subscription canceled/unpaid/incomplete_expired → suspended; past_due mantiene active (gracia con reintentos de Stripe).

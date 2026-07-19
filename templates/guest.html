@@ -351,6 +351,7 @@ accent-color: var(--primary);
   font-size: 18px; font-weight: 700; color: var(--accent);
   border: 1px solid rgba(255,255,255,0.08);
 }
+.home-hero-bar-title { display: none; } /* shown only under body[data-theme="serene"] */
 .home-lang-btn {
   padding: 7px 16px; border-radius: 18px;
   background: rgba(255,255,255,0.10);
@@ -1275,6 +1276,202 @@ body[data-theme="zen"] .pwa-banner { box-shadow: none; border: 1px solid #EBEAE6
 body[data-theme="zen"] .bottom-nav { display: none !important; }
 body[data-theme="zen"] .zen-index { display: flex; }
 
+/* ═══ THEME: SERENE — "Quiet Luxury / Serene Hospitality" ═══ */
+body[data-theme="serene"] {
+  --surface-low: #f5f3f3;
+  --surface-high: #eae8e7;
+  --outline: #73787a;
+  --outline-variant: #c2c7ca;
+}
+/* Top app bar: crema, sin imagen, nombre del hotel centrado en serif */
+body[data-theme="serene"] .home-hero {
+  display: block;
+  position: relative;
+  /* barra (88px) + card del hero (256px) + aire inferior (24px) */
+  min-height: 368px;
+  background: var(--bg);
+}
+body[data-theme="serene"] .home-hero-bar {
+  position: relative;
+  z-index: 3;
+  background: var(--bg);
+  padding: 16px 24px;
+}
+body[data-theme="serene"] .home-hero-bar .home-brand-logo .logo-sm {
+  background: var(--surface-low);
+  color: var(--primary);
+  border-color: transparent;
+  width: 34px; height: 34px; font-size: 15px;
+}
+body[data-theme="serene"] .home-hero-bar-title {
+  display: block;
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 17px;
+  color: var(--primary);
+  padding: 0 8px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+body[data-theme="serene"] .home-lang-btn {
+  background: var(--surface-low);
+  color: var(--primary);
+  border-color: transparent;
+}
+/* Hero as an inset card: rounded image card below the top bar, navy gradient, eyebrow + serif greeting */
+body[data-theme="serene"] .home-hero-bg,
+body[data-theme="serene"] .home-hero-scrim {
+  top: 88px; right: 24px; bottom: auto; left: 24px;
+  height: 256px;
+  border-radius: 16px;
+}
+body[data-theme="serene"] .home-hero-scrim {
+  background: linear-gradient(to top, rgba(4,25,32,0.82) 0%, rgba(4,25,32,0.15) 55%, transparent 75%);
+}
+body[data-theme="serene"] .home-welcome {
+  /* Anclado a la MISMA geometría de la card del hero (top 88px, alto 256px)
+     para que el texto siempre quede dentro de la imagen, no debajo. */
+  position: absolute;
+  z-index: 4;
+  top: 88px;
+  bottom: auto;
+  left: 24px; right: 24px;
+  height: 256px;
+  box-sizing: border-box;
+  margin: 0; padding: 0 20px 20px;
+  display: flex; flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  border-radius: 16px;
+  pointer-events: none;
+}
+body[data-theme="serene"] .home-welcome > * { pointer-events: auto; }
+body[data-theme="serene"] .home-welcome-accent { display: none; }
+body[data-theme="serene"] .hero-hotel-name {
+  order: -1;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px; font-weight: 600;
+  font-family: var(--font-sans);
+  color: rgba(255,255,255,0.78);
+  margin-bottom: 6px !important;
+}
+body[data-theme="serene"] .home-welcome h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(24px, 6vw, 32px);
+  letter-spacing: -0.01em;
+}
+body[data-theme="serene"] .home-content { padding-top: 24px; }
+body[data-theme="serene"] .home-hero ~ .home-content { margin-top: 24px; }
+
+/* Section headings: serif title + uppercase tracked eyebrow, generous spacing */
+body[data-theme="serene"] .section-heading { padding: 40px 24px 16px; }
+body[data-theme="serene"] .section-eyebrow {
+  text-transform: uppercase;
+  font-size: 12px; letter-spacing: 0.05em;
+  color: var(--outline);
+  font-weight: 600;
+}
+body[data-theme="serene"] .section-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 24px;
+  color: var(--text);
+}
+
+/* Modules: first two = tonal quick-actions, rest = tonal list rows */
+body[data-theme="serene"] .module-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 0 24px 8px;
+}
+body[data-theme="serene"] .module-card::before { display: none; }
+body[data-theme="serene"] .serene-quick {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 32px 16px;
+  border-radius: 12px; border: none; box-shadow: none;
+  text-align: center; backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+body[data-theme="serene"] .serene-quick-0 { background: var(--primary); color: #fff; }
+body[data-theme="serene"] .serene-quick-1 { background: #fdd6ae; color: #785b3c; }
+body[data-theme="serene"] .serene-quick-icon { color: inherit; }
+body[data-theme="serene"] .serene-quick-icon svg { width: 30px; height: 30px; }
+body[data-theme="serene"] .serene-quick-label {
+  font-family: var(--font-sans); font-weight: 600; font-size: 14px; letter-spacing: 0.01em; color: inherit;
+}
+body[data-theme="serene"] .serene-list-row {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 18px;
+  background: var(--surface-low);
+  border: 1px solid rgba(194,199,202,0.3);
+  border-radius: 12px; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+body[data-theme="serene"] .serene-list-icon {
+  width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+  background: #d0e6ef; color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+}
+body[data-theme="serene"] .serene-list-icon svg { width: 22px; height: 22px; }
+body[data-theme="serene"] .serene-list-row .list-row-text h3 { font-weight: 600; }
+body[data-theme="serene"] .module-stage { background: var(--surface-high); color: var(--secondary); }
+
+/* Promos: horizontal carousel with pill badge + outline CTA */
+body[data-theme="serene"] .promo-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(194,199,202,0.3);
+  box-shadow: var(--shadow);
+  min-width: 280px;
+}
+body[data-theme="serene"] .promo-img { height: 160px; }
+body[data-theme="serene"] .promo-price {
+  left: 12px; right: auto; top: 12px;
+  background: var(--primary);
+  border-radius: 999px;
+  text-transform: uppercase; letter-spacing: 0.05em; font-size: 11px;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+body[data-theme="serene"] .promo-body h3 { font-family: var(--font-display); font-weight: 600; }
+body[data-theme="serene"] .promo-body .btn-cta {
+  display: flex; width: 100%; justify-content: center;
+  background: transparent; color: var(--primary);
+  border: 1px solid var(--outline); border-radius: 8px;
+  transition: var(--transition);
+}
+body[data-theme="serene"] .promo-body .btn-cta:hover { background: var(--primary); color: #fff; }
+
+/* Posts: photo cards, radius 12, ambient shadow, serif titles */
+body[data-theme="serene"] .post-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(194,199,202,0.3);
+  box-shadow: var(--shadow);
+}
+body[data-theme="serene"] .post-card-title { font-family: var(--font-display); font-weight: 600; }
+
+/* FAQ / contact dock / gallery: white ambient dock, navy/taupe icons, tonal pills */
+body[data-theme="serene"] .contact-bar {
+  background: rgba(255,255,255,0.92);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(194,199,202,0.3);
+}
+body[data-theme="serene"] .contact-whatsapp .contact-icon,
+body[data-theme="serene"] .contact-phone .contact-icon { background: var(--primary); }
+body[data-theme="serene"] .contact-email .contact-icon { background: var(--secondary); }
+body[data-theme="serene"] .faq-item { border-bottom-color: rgba(194,199,202,0.4); }
+body[data-theme="serene"] .detail-stage-badge,
+body[data-theme="serene"] .stage-pre-arrival,
+body[data-theme="serene"] .stage-in-stay,
+body[data-theme="serene"] .stage-pre-checkout {
+  background: var(--surface-high); color: var(--secondary);
+}
+body[data-theme="serene"] .gallery-thumb { border-radius: 10px; overflow: hidden; }
+body[data-theme="serene"] .zen-index { display: none !important; }
+
 /* ═══ 7. COMPONENTES NUEVOS ═══ */
 /* Bottom nav (urban) — always in DOM, shown only under body[data-theme=urban] */
 .bottom-nav {
@@ -1625,6 +1822,7 @@ outline-offset: 2px;
       <span class="logo-sm" id="home-logo-text">H</span>
       <img id="home-logo-img" class="hidden" src="" alt="Logo">
     </div>
+    <div class="home-hero-bar-title" id="home-hero-bar-title"></div>
     <button class="home-lang-btn" id="lang-toggle" onclick="toggleLanguageMenu()">EN</button>
   </div>
   <!-- Welcome content -->
@@ -2322,9 +2520,10 @@ return raw.length ? raw : ['es', 'en'];
 
 // ---------- Init ----------
 document.addEventListener('DOMContentLoaded', async () => {
-// Extract slug
+// Extract slug: custom domains are served at "/" with window.HF_SLUG injected
+// server-side; the default path-based flow keeps working for /g/{slug}.
 const parts = window.location.pathname.split('/g/');
-state.slug = (parts[1] || '').split('/')[0].split('?')[0];
+state.slug = window.HF_SLUG || (parts[1] || '').split('/')[0].split('?')[0];
 
 if (!state.slug) {
 showError();
@@ -2875,13 +3074,19 @@ const THEME_TOKENS = {
     primary:'#37352F', secondary:'#8A8578', accent:'#8A8578', bg:'#FFFFFF', bgSec:'#FAFAF8', text:'#37352F',
     fontDisplay:"'Inter', -apple-system, BlinkMacSystemFont, sans-serif", fontBody:"'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
     radius:'4px', radiusSm:'2px', shadow:'none'
+  },
+  serene: {
+    primary:'#041920', secondary:'#755939', accent:'#755939', bg:'#fbf9f8', bgSec:'#f5f3f3', text:'#1b1c1c',
+    fontDisplay:"'Source Serif 4', Georgia, serif", fontBody:"'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+    radius:'16px', radiusSm:'12px', shadow:'0 2px 8px rgba(4,25,32,0.06)'
   }
 };
 const THEME_CONFIG = {
   boutique: { nav:'dock',  modules:'grid',        promos:'carousel', posts:'row'  },
   urban:    { nav:'tabs',  modules:'grid-dense',   promos:'carousel', posts:'row'  },
   resort:   { nav:'dock',  modules:'mosaic',       promos:'xl',       posts:'xl'   },
-  zen:      { nav:'index', modules:'list',         promos:'list',     posts:'list' }
+  zen:      { nav:'index', modules:'list',         promos:'list',     posts:'list' },
+  serene:   { nav:'dock',  modules:'serene',       promos:'serene',   posts:'row'  }
 };
 // Resolve a hotel's `theme` field to one of the 4 canonical layout themes.
 function resolveTheme(h) {
@@ -3045,6 +3250,21 @@ ${media}<div class="xl-card-scrim"></div>${stageBadge}
 if (variant === 'list') {
 return `<div class="module-card list-row animate-in" ${actionableAttrs()} onclick="showModuleDetail('${m.id}')">
 <div class="module-icon">${svgIcon(m.icon)}</div>
+<div class="list-row-text"><h3>${title}</h3><p>${sub}</p></div>
+${stageBadge}
+</div>`;
+}
+if (variant === 'serene') {
+// First two modules become quick-action tiles (navy / secondary-container); the rest
+// render as tonal list rows. See body[data-theme="serene"] CSS for the visual treatment.
+if (i < 2) {
+return `<div class="module-card serene-quick serene-quick-${i} animate-in" ${actionableAttrs()} onclick="showModuleDetail('${m.id}')">
+<div class="serene-quick-icon">${svgIcon(m.icon)}</div>
+<span class="serene-quick-label">${title}</span>
+</div>`;
+}
+return `<div class="module-card serene-list-row animate-in" ${actionableAttrs()} onclick="showModuleDetail('${m.id}')">
+<div class="serene-list-icon">${svgIcon(m.icon)}</div>
 <div class="list-row-text"><h3>${title}</h3><p>${sub}</p></div>
 ${stageBadge}
 </div>`;
@@ -3328,6 +3548,10 @@ else cfg = h.header_config ? JSON.parse(h.header_config) : {};
 const style = ['classic', 'centered', 'split', 'custom'].includes(h.header_style) ? h.header_style : 'classic';
 hero.classList.remove('header-classic', 'header-centered', 'header-split', 'header-custom');
 hero.classList.add('header-' + style);
+
+// Serene theme: centered hotel name in the top app bar (hidden for other themes via CSS)
+const heroBarTitle = document.getElementById('home-hero-bar-title');
+if (heroBarTitle) heroBarTitle.textContent = h.nombre || h.name || '';
 
 // Fallback background when there is no cover image: bg_color (or theme primary), subtle gradient
 const heroBg = document.getElementById('home-hero-bg');

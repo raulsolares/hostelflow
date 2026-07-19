@@ -499,6 +499,7 @@ backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
 <div class="page" id="page-config"></div>
 <div class="page" id="page-analytics"></div>
 <div class="page" id="page-hotels"></div>
+<div class="page" id="page-saas"></div>
 <div class="page" id="page-popups"></div>
 <div class="page" id="page-notifications"></div>
 <div class="page" id="page-themes"></div>
@@ -681,6 +682,7 @@ const pageGroups=[
 {id:'users',label:'Usuarios',icon:'users',hideForEditor:true},
 {id:'config',label:'Configuración',icon:'settings',hideForEditor:true},
 {id:'hotels',label:'Hoteles',icon:'hotel',superOnly:true},
+{id:'saas',label:'SaaS',icon:'chart',superOnly:true},
 {id:'themes',label:'Themes CSS',icon:'settings',superOnly:true}
 ]}
 ];
@@ -1023,6 +1025,7 @@ case 'users':await loadUsers();break;
 case 'qr':await loadQR();break;
 case 'config':await loadConfig();break;
 case 'hotels':await loadHotels();break;
+case 'saas':await loadSaas();break;
 case 'analytics':await loadAnalytics();break;
 case 'popups':await loadPopups();break;
 case 'notifications':await loadNotifications();break;
@@ -1980,7 +1983,8 @@ const GUEST_THEMES=[
 {id:'boutique',name:'Boutique',desc:'Crema y dorado, estilo editorial',bg:'#F4EFE6',accent:'#C9A961',legacy:['luxury','rose']},
 {id:'urban',name:'Urban',desc:'Oscuro con verde, tabs inferiores',bg:'#0E1116',accent:'#4ADE80',legacy:['royal']},
 {id:'resort',name:'Resort',desc:'Blanco con cian y coral, cards XL',bg:'#FFFFFF',accent:'#0EA5E9',accent2:'#FB7185',legacy:['ocean','sunset','tropical']},
-{id:'zen',name:'Zen',desc:'Blanco minimalista, lista simple',bg:'#FFFFFF',accent:'#37352F',legacy:['forest','minimal']}
+{id:'zen',name:'Zen',desc:'Blanco minimalista, lista simple',bg:'#FFFFFF',accent:'#37352F',legacy:['forest','minimal']},
+{id:'serene',name:'Serene',desc:'Lujo sereno: crema, serif editorial y navy profundo',bg:'#fbf9f8',accent:'#041920',accent2:'#fdd6ae',legacy:[]}
 ];
 const configState={theme:null,headerStyle:'classic',headerConfig:{},defaultLanguage:'es',supportedLangs:['es']};
 const ALL_LANGS=['es','en','fr','de','pt'];
@@ -2118,6 +2122,17 @@ return`<div style="background:${t.bg};height:100%;border-radius:6px;padding:6px;
 <div style="height:8px;background:${t.accent};opacity:.25;border-radius:2px;width:40%"></div>
 </div>`;
 }
+if(t.id==='serene'){
+// crema editorial: top-bar con puntito navy + hero navy + 2 mini-tiles
+return`<div style="background:${t.bg};height:100%;border-radius:6px;padding:6px;display:flex;flex-direction:column;gap:5px">
+<div style="display:flex;align-items:center;gap:4px"><div style="width:6px;height:6px;border-radius:50%;background:${t.accent}"></div><div style="height:4px;width:40%;background:${t.accent};opacity:.45;border-radius:2px"></div></div>
+<div style="flex:1;border-radius:6px;background:linear-gradient(135deg,${t.accent},#0a2e42)"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;height:14px">
+<div style="border-radius:4px;background:${t.accent}"></div>
+<div style="border-radius:4px;background:${t.accent2}"></div>
+</div>
+</div>`;
+}
 // zen: lista de 3 líneas
 return`<div style="background:${t.bg};height:100%;border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:6px;justify-content:center">
 ${[70,55,40].map(w=>`<div style="height:5px;width:${w}%;background:${t.accent};opacity:.6;border-radius:2px"></div>`).join('')}
@@ -2197,6 +2212,21 @@ el.innerHTML=`<div class="page-title">Configuración del Hotel</div>
 <div class="form-group"><label>Color de fondo</label><input type="color" id="cBgColor" value="${esc(h.bg_color||'#FFFFFF')}"></div>
 </div>
 </div></div>
+<div class="card"><div class="card-header"><h3>Dominio personalizado</h3></div>
+<div class="card-body">
+<div class="form-group"><label>Dominio</label>
+<div style="display:flex;gap:.5rem;flex-wrap:wrap">
+<input id="cCustomDomain" value="${esc(h.custom_domain||'')}" placeholder="app.tuhotel.com" style="flex:1;min-width:200px">
+<button class="btn btn-primary btn-sm" onclick="saveCustomDomain()">Guardar</button>
+<button class="btn btn-ghost btn-sm" onclick="removeCustomDomain()" ${h.custom_domain?'':'disabled'}>Quitar</button>
+</div></div>
+<div id="domainDnsBlock">${domainDnsInstructionsHtml(h.custom_domain)}</div>
+<div style="display:flex;align-items:center;gap:.6rem;margin-top:.6rem;flex-wrap:wrap">
+<span id="domainStatusBadge">${domainStatusBadge(null)}</span>
+<button class="btn btn-ghost btn-sm" onclick="verifyDomainDns()">Verificar DNS</button>
+</div>
+<p style="font-size:.75rem;color:var(--muted);margin-top:.8rem">El certificado SSL se gestiona automáticamente en el servidor una vez que el DNS apunta correctamente.</p>
+</div></div>
 <div class="card"><div class="card-header"><h3>Textos de Experiencia</h3></div>
 <div class="card-body">
 <div class="form-group"><label>Título de bienvenida</label><input id="cWelcomeTitle" value="${esc(h.welcome_headline||'')}"></div>
@@ -2247,9 +2277,67 @@ ${slug?`<div class="app-preview-frame"><iframe id="appPreviewIframe" src="/g/${e
 </div>`;
 // Load themes into selector
 try{const themes=await api('/api/admin/themes');const sel=document.getElementById('cTheme');if(themes&&sel){themes.forEach(t=>{const o=document.createElement('option');o.value=t.id;o.textContent=t.name;if(t.id==h.theme_id)o.selected=true;sel.appendChild(o);});}}catch(e){}
+loadDomainStatus();
 }catch(e){
 el.innerHTML=`<div class="page-title">Configuración</div><div class="card"><div class="card-body"><p style="color:var(--muted)">Error: ${esc(e.message)}</p></div></div>`;
 }
+}
+
+// DOMINIO PERSONALIZADO — card de Configuración
+let domainState={expected_target:''};
+
+function domainDnsInstructionsHtml(domain){
+if(!domain)return'';
+const target=domainState.expected_target||'el dominio de tu instancia';
+return`<p style="font-size:.8rem;color:var(--muted);margin-top:.6rem">En tu proveedor de DNS crea un registro <strong>CNAME</strong> de <code style="background:var(--bg);padding:2px 6px;border-radius:4px">${esc(domain)}</code> hacia <code style="background:var(--bg);padding:2px 6px;border-radius:4px">${esc(target)}</code></p>`;
+}
+
+function domainStatusBadge(dnsOk){
+if(dnsOk===true)return'<span class="badge badge-green">DNS detectado</span>';
+if(dnsOk===false)return'<span class="badge" style="background:rgba(245,158,11,.14);color:#F59E0B">Aún no resuelve — los cambios de DNS pueden tardar hasta 48h</span>';
+return'<span class="badge badge-gray">Sin dominio configurado</span>';
+}
+
+function refreshDomainCardUI(domain,dnsOk){
+const dnsBlock=document.getElementById('domainDnsBlock');
+if(dnsBlock)dnsBlock.innerHTML=domainDnsInstructionsHtml(domain);
+const badge=document.getElementById('domainStatusBadge');
+if(badge)badge.innerHTML=domainStatusBadge(dnsOk);
+}
+
+async function loadDomainStatus(){
+try{
+const d=await api('/api/admin/hotel/domain-status');
+domainState.expected_target=d.expected_target||'';
+refreshDomainCardUI(d.domain||gv('cCustomDomain'),d.dns_ok===undefined?null:d.dns_ok);
+}catch(e){
+refreshDomainCardUI(gv('cCustomDomain'),null);
+}
+}
+
+async function saveCustomDomain(){
+const domain=gv('cCustomDomain').trim();
+try{
+await api('/api/admin/hotel',{method:'PUT',body:JSON.stringify({custom_domain:domain||null})});
+toast('Dominio guardado');
+await loadDomainStatus();
+document.getElementById('domainDnsBlock').innerHTML=domainDnsInstructionsHtml(domain);
+document.querySelector('button[onclick="removeCustomDomain()"]').disabled=!domain;
+}catch(e){toast(e.message,'error');}
+}
+
+async function removeCustomDomain(){
+try{
+await api('/api/admin/hotel',{method:'PUT',body:JSON.stringify({custom_domain:null})});
+document.getElementById('cCustomDomain').value='';
+toast('Dominio eliminado');
+await loadDomainStatus();
+document.querySelector('button[onclick="removeCustomDomain()"]').disabled=true;
+}catch(e){toast(e.message,'error');}
+}
+
+async function verifyDomainDns(){
+await loadDomainStatus();
 }
 
 async function saveConfig(){
@@ -2372,6 +2460,91 @@ ${hotels.map(h=>`<tr>
 </div></div>`;
 }catch(e){
 el.innerHTML=`<div class="page-title">Hoteles</div><div class="card"><div class="card-body"><p style="color:var(--muted)">Error cargando hoteles</p></div></div>`;
+}
+}
+
+// SAAS (dashboard super_admin, solo lectura)
+function fmtMoney(amount,currency){
+const cur=(currency||'USD').toUpperCase();
+try{return new Intl.NumberFormat('es-MX',{style:'currency',currency:cur,maximumFractionDigits:2}).format((amount||0));}
+catch(e){return `${(amount||0).toFixed?amount.toFixed(2):amount} ${cur}`;}
+}
+function fmtMonthLabel(ym){
+if(!ym)return'';
+const d=parseUtc(ym+'-01');
+return d?d.toLocaleDateString('es-MX',{month:'short',year:'2-digit'}):ym;
+}
+async function loadSaas(){
+const el=document.getElementById('page-saas');
+el.innerHTML=`<div class="page-title">SaaS</div><div class="card"><div class="card-body"><p style="color:var(--muted)">Cargando...</p></div></div>`;
+if(!isSuperAdmin()){
+el.innerHTML=`<div class="page-title">SaaS</div><div class="card"><div class="card-body"><p style="color:var(--muted)">Solo el super administrador puede ver esto</p></div></div>`;
+return;
+}
+try{
+const d=await api('/api/admin/saas/overview');
+const totals=d.totals||{};
+const mrr=d.mrr||{};
+const signups=Array.isArray(d.signups_by_month)?d.signups_by_month:[];
+const trials=Array.isArray(d.trials_expiring)?d.trials_expiring:[];
+const hotels=Array.isArray(d.hotels)?d.hotels:[];
+const mrrSuffix=mrr.source==='estimate'?' <small style="color:var(--muted)">estimado</small>':'';
+const signupsChart=signups.length
+?svgLineChart([{name:'Altas',color:'#06B6D4',points:signups.map(s=>({date:s.month,count:s.count||0}))}])
+:'<div class="svg-chart-empty">Sin datos aún</div>';
+el.innerHTML=`<div class="page-title">SaaS</div>
+<div class="stats-grid">
+<div class="stat-card"><div class="stat-icon blue">${icons.hotel}</div><div class="stat-label">Hoteles totales</div><div class="stat-value">${totals.hotels??0}</div></div>
+<div class="stat-card"><div class="stat-icon green">${icons.hotel}</div><div class="stat-label">Activos</div><div class="stat-value">${totals.active??0}</div></div>
+<div class="stat-card"><div class="stat-icon gold">${icons.hotel}</div><div class="stat-label">En prueba</div><div class="stat-value">${totals.trial??0}</div></div>
+<div class="stat-card"><div class="stat-icon purple">${icons.hotel}</div><div class="stat-label">Suspendidos</div><div class="stat-value">${totals.suspended??0}</div></div>
+<div class="stat-card"><div class="stat-icon blue">${icons.tag}</div><div class="stat-label">Suscripciones Stripe</div><div class="stat-value">${totals.with_subscription??0}</div></div>
+<div class="stat-card"><div class="stat-icon green">${icons.chart}</div><div class="stat-label">MRR</div><div class="stat-value">${esc(fmtMoney(mrr.amount,mrr.currency))}${mrrSuffix}</div></div>
+</div>
+<div class="card" style="margin-bottom:1.5rem"><div class="card-header"><h3>Altas por mes · últimos 12 meses</h3></div><div class="card-body">
+${signupsChart}
+</div></div>
+<div class="chart-row">
+<div class="card"><div class="card-header"><h3>Pruebas por vencer (7 días)</h3></div><div class="card-body">
+${trials.length?`<div class="activity-list">${trials.map(t=>{
+const end=parseUtc(t.trial_ends_at);
+const dateStr=end?end.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}):'—';
+return`<div class="activity-item"><span class="activity-avatar">${esc((t.nombre||'?').trim().charAt(0).toUpperCase()||'?')}</span>
+<div style="flex:1;min-width:0"><div class="activity-name">${esc(t.nombre||'')}</div><div class="activity-meta">${esc(t.slug||'')}</div></div>
+<span class="activity-time">${esc(dateStr)}</span></div>`;
+}).join('')}</div>`:'<div class="empty"><p>No hay pruebas por vencer</p></div>'}
+</div></div>
+<div class="card"><div class="card-header"><h3>Resumen</h3></div><div class="card-body">
+<p style="font-size:.85rem;color:var(--muted)">Hoteles con suscripción activa: <strong>${totals.with_subscription??0}</strong> de <strong>${totals.hotels??0}</strong></p>
+<p style="font-size:.85rem;color:var(--muted);margin-top:.5rem">MRR fuente: <strong>${mrr.source==='estimate'?'Estimado':'Stripe'}</strong></p>
+</div></div>
+</div>
+<div class="card" style="margin-top:1.5rem">
+<div class="card-header"><h3>Todos los hoteles (${hotels.length})</h3></div>
+<div class="card-body" style="overflow-x:auto">
+${hotels.length?`<table><thead><tr><th>Nombre</th><th>Slug</th><th>Plan</th><th>Suscripción</th><th>Leads</th><th>Alta</th></tr></thead><tbody>
+${hotels.map(h=>{
+const created=parseUtc(h.created_at);
+const createdStr=created?created.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}):'—';
+return`<tr>
+<td><strong>${esc(h.nombre||'')}</strong></td>
+<td><code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:.78rem">${esc(h.slug||'')}</code></td>
+<td>${planBadge(h)}</td>
+<td>${h.has_subscription?'<span class="badge badge-green">✓ Stripe</span>':'<span style="color:var(--muted)">—</span>'}</td>
+<td>${h.leads_count??0}</td>
+<td>${esc(createdStr)}</td>
+</tr>`;
+}).join('')}
+</tbody></table>`:'<div class="empty"><p>No hay hoteles registrados</p></div>'}
+</div></div>`;
+}catch(e){
+if(e.status===403){
+el.innerHTML=`<div class="page-title">SaaS</div><div class="card"><div class="card-body"><p style="color:var(--muted)">Solo el super administrador puede ver esto</p></div></div>`;
+}else if(e.status===404){
+el.innerHTML=`<div class="page-title">SaaS</div><div class="card"><div class="card-body"><p style="color:var(--muted)">Actualiza el backend</p></div></div>`;
+}else{
+el.innerHTML=`<div class="page-title">SaaS</div><div class="card"><div class="card-body"><p style="color:var(--muted)">Error: ${esc(e.message)}</p></div></div>`;
+}
 }
 }
 

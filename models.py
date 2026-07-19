@@ -111,6 +111,9 @@ class Hotel(Base):
     stripe_customer_id = Column(String(100), nullable=True)
     stripe_subscription_id = Column(String(100), nullable=True)
 
+    # SaaS: dominio personalizado (P7)
+    custom_domain = Column(String(200), nullable=True, unique=True)
+
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
