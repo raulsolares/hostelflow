@@ -11,3 +11,4 @@ tinycss2==1.5.1
 slowapi==0.1.10
 pydantic[email]==2.10.3
 pywebpush==2.0.3
+stripe==15.3.1

@@ -122,6 +122,15 @@ Resuelto en el trabajo premium (ver `PREMIUM_SPEC.md` §1). `_resolve_hotel_id(u
 
 ## P3 — Producto / premium
 
+### [x] P6-0 · Pagos automatizados con Stripe (2026-07-19)
+- Un solo plan por suscripción con **cupones nativos de Stripe** (`allow_promotion_codes` en Checkout; los cupones se crean en el dashboard de Stripe). Facturas manuales (fuera del sistema).
+- `POST /api/admin/billing/checkout` (crea/reutiliza Customer, Checkout Session de suscripción), `GET /api/admin/billing/portal` (Customer Portal para tarjeta/cancelación), `POST /api/webhooks/stripe` (firma verificada, idempotente): `checkout.session.completed` → active; subscription canceled/unpaid/incomplete_expired → suspended; past_due mantiene active (gracia con reintentos de Stripe).
+- **Exención de trial**: `/api/admin/billing/*` queda fuera del bloqueo de escrituras, para que un hotel vencido pueda pagar.
+- Config: `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET`/`STRIPE_PRICE_ID` (documentadas en .env.example); sin ellas los endpoints devuelven 503 y la UI degrada con toast.
+- Admin: botón "Activar plan" en el banner de trial y card "Facturación" en Configuración; "Gestionar suscripción" vía portal; retorno `?billing=success|cancelled` con toasts; indicador "· Stripe" en Hoteles. Los IDs de Stripe nunca se exponen en el API del guest.
+- 191 tests verdes (20 nuevos en `test_p6_billing.py`, Stripe mockeado sin red).
+- **Pendiente operativo (manual)**: crear producto+precio en Stripe (modo test), copiar las 3 claves al .env, registrar el endpoint del webhook en el dashboard.
+
 ### [x] P5-0 · Permisos multi-hotel + módulo SaaS de prueba (2026-07-16)
 - **Permisos por hotel**: tabla `user_hotels` (rol admin/editor por hotel, unique user+hotel); `_resolve_hotel_id` valida `X-Hotel-Id` contra los hoteles asignados (403 si no); rol **editor** = solo contenido (403 en config del hotel, usuarios, notificaciones push y creación de QR); `GET /api/auth/me` devuelve `hotels: [{id, nombre, slug, role}]`. CRUD completo de usuarios (`GET/POST/PUT/DELETE /api/admin/users` + reset-password) con salvaguardas: no tocar super_admins desde hotel_admin, no desactivar al último admin de un hotel, no auto-desactivarse. Página "Usuarios" en el admin con asignación multi-hotel y selector de hotel en topbar para usuarios con 2+ hoteles; el sidebar se filtra por rol efectivo.
 - **SaaS trial**: `POST /api/signup` público (rate limit 3/min) crea hotel `plan=trial` (14 días) + admin + secciones default y auto-loguea; formulario "Crear cuenta gratis" en la pantalla de login. Trial vencido/suspendido: escrituras admin → 403 (lecturas ok), guest → `trial_expired` con pantalla amable multiidioma. Super_admin gestiona plan desde Hoteles (Activar/Extender 14 días/Suspender). `PUT /api/admin/hotel` NO expone plan/trial (un hotel no puede auto-extenderse).

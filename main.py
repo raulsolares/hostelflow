@@ -24,6 +24,7 @@ from py_vapid import Vapid02 as Vapid
 from py_vapid.utils import b64urlencode
 from pywebpush import webpush, WebPushException
 from qrcode.image.svg import SvgPathImage
+import stripe
 from fastapi import FastAPI, Depends, HTTPException, Query, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response, FileResponse
@@ -59,6 +60,17 @@ ACCESS_TOKEN_EXPIRE_HOURS = int(os.getenv("ACCESS_TOKEN_EXPIRE_HOURS", "8"))
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./hostelflow.db")
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Facturación (Stripe, P6). Plan único, cupones nativos de Stripe (checkout
+# allow_promotion_codes), facturas manuales desde el dashboard. Si falta
+# cualquiera de las 3 vars, BILLING_ENABLED queda False y los endpoints
+# /api/admin/billing/* devuelven 503 en vez de fallar con credenciales vacías.
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID", "")
+BILLING_ENABLED = bool(STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET and STRIPE_PRICE_ID)
+if STRIPE_SECRET_KEY:
+    stripe.api_key = STRIPE_SECRET_KEY
 
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = BASE_DIR / "templates"
@@ -843,6 +855,10 @@ def hotel_to_dict(h: Hotel) -> dict:
         # SaaS: plan y trial (P5), para el banner del admin
         "plan": h.plan or "active",
         "trial_ends_at": str(h.trial_ends_at) if h.trial_ends_at else None,
+        # SaaS: facturación (P6). Solo el booleano — los IDs de Stripe
+        # (stripe_customer_id/stripe_subscription_id) NUNCA se exponen aquí:
+        # este serializer lo usa también GET /api/guest/{slug}.
+        "has_subscription": bool(h.stripe_subscription_id),
     }
 
 
@@ -1735,11 +1751,21 @@ def _role_in_hotel(db: Session, user: User, hid: int) -> str:
     return allowed.get(hid, "editor")
 
 
+# Prefijos de path exentos del bloqueo de trial/suspensión (P6): un hotel con
+# el trial vencido o suspendido tiene que poder seguir pagando — si no, queda
+# atrapado sin forma de reactivarse por sí mismo.
+_TRIAL_ENFORCEMENT_EXEMPT_PREFIXES = ("/api/admin/billing/",)
+
+
 def _enforce_trial_write(db: Session, hid: int, request: Request) -> None:
     """403 en escrituras (POST/PUT/DELETE/PATCH) si el hotel resuelto está en
     trial vencido o suspendido (P5, objetivo 2). Las lecturas (GET) nunca se
-    bloquean para que el panel siga mostrando el aviso."""
+    bloquean para que el panel siga mostrando el aviso. Excepción (P6): las
+    rutas de facturación (`/api/admin/billing/*`) nunca se bloquean, para que
+    un hotel vencido/suspendido pueda pagar y reactivarse."""
     if request.method not in _WRITE_METHODS:
+        return
+    if request.url.path.startswith(_TRIAL_ENFORCEMENT_EXEMPT_PREFIXES):
         return
     hotel = db.query(Hotel).filter(Hotel.id == hid).first()
     if not hotel:
@@ -2834,6 +2860,153 @@ def push_stats(request: Request, user: User = Depends(require_role(UserRole.supe
     hid = _resolve_hotel_id(user, request)
     count = db.query(func.count(PushSubscription.id)).filter(PushSubscription.hotel_id == hid).scalar()
     return {"subscribers": count}
+
+
+# ── Billing (Stripe) ───────────────────────────────────────────────────────
+#
+# Un solo plan (STRIPE_PRICE_ID), cupones nativos de Stripe Checkout
+# (allow_promotion_codes) y facturas manuales gestionadas desde el dashboard
+# de Stripe (no hay endpoint propio para listarlas/emitirlas). El estado de
+# la suscripción se sincroniza vía webhook (checkout.session.completed,
+# customer.subscription.updated, customer.subscription.deleted) hacia
+# Hotel.plan/trial_ends_at — ver mapa de estados en docs/API.md.
+
+def _base_url(request: Request) -> str:
+    """Origen público a partir del request (respeta X-Forwarded-Proto detrás
+    de proxy TLS, igual que SecurityHeadersMiddleware)."""
+    scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
+    return f"{scheme}://{request.url.netloc}"
+
+
+def _find_hotel_by_stripe_customer(db: Session, customer_id: Optional[str]) -> Optional[Hotel]:
+    if not customer_id:
+        return None
+    return db.query(Hotel).filter(Hotel.stripe_customer_id == customer_id).first()
+
+
+def _find_hotel_by_stripe_subscription(db: Session, subscription_id: Optional[str]) -> Optional[Hotel]:
+    if not subscription_id:
+        return None
+    return db.query(Hotel).filter(Hotel.stripe_subscription_id == subscription_id).first()
+
+
+@app.post("/api/admin/billing/checkout")
+def create_billing_checkout(request: Request, user: User = Depends(require_manager), db: Session = Depends(get_db)):
+    if not BILLING_ENABLED:
+        raise HTTPException(status_code=503, detail="La facturación no está configurada")
+    hid = _resolve_hotel_id(user, request)
+    hotel = db.query(Hotel).filter(Hotel.id == hid).first()
+    if not hotel:
+        raise HTTPException(status_code=404, detail="Hotel no encontrado")
+
+    if not hotel.stripe_customer_id:
+        customer = stripe.Customer.create(email=user.email, metadata={"hotel_id": str(hotel.id)})
+        hotel.stripe_customer_id = customer.id
+        db.commit()
+
+    base = _base_url(request)
+    session = stripe.checkout.Session.create(
+        mode="subscription",
+        customer=hotel.stripe_customer_id,
+        line_items=[{"price": STRIPE_PRICE_ID, "quantity": 1}],
+        allow_promotion_codes=True,
+        client_reference_id=str(hotel.id),
+        metadata={"hotel_id": str(hotel.id)},
+        success_url=f"{base}/admin?billing=success",
+        cancel_url=f"{base}/admin?billing=cancelled",
+    )
+    return {"url": session.url}
+
+
+@app.get("/api/admin/billing/portal")
+def get_billing_portal(request: Request, user: User = Depends(require_manager), db: Session = Depends(get_db)):
+    if not BILLING_ENABLED:
+        raise HTTPException(status_code=503, detail="La facturación no está configurada")
+    hid = _resolve_hotel_id(user, request)
+    hotel = db.query(Hotel).filter(Hotel.id == hid).first()
+    if not hotel or not hotel.stripe_customer_id:
+        raise HTTPException(status_code=404, detail="Este hotel no tiene una suscripción")
+
+    base = _base_url(request)
+    session = stripe.billing_portal.Session.create(
+        customer=hotel.stripe_customer_id,
+        return_url=f"{base}/admin",
+    )
+    return {"url": session.url}
+
+
+def _hotel_from_billing_event(db: Session, event_data: dict) -> Optional[Hotel]:
+    """Localiza el hotel de un evento de checkout.session.completed:
+    metadata.hotel_id o, si falta, client_reference_id."""
+    metadata = event_data.get("metadata") or {}
+    raw_hid = metadata.get("hotel_id") or event_data.get("client_reference_id")
+    if not raw_hid:
+        return None
+    try:
+        hid = int(raw_hid)
+    except (TypeError, ValueError):
+        return None
+    return db.query(Hotel).filter(Hotel.id == hid).first()
+
+
+@app.post("/api/webhooks/stripe")
+async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
+    if not BILLING_ENABLED:
+        raise HTTPException(status_code=503, detail="La facturación no está configurada")
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature", "")
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+    except (ValueError, stripe.SignatureVerificationError):
+        raise HTTPException(status_code=400, detail="Firma de webhook inválida")
+
+    event_type = event["type"]
+    data = event["data"]["object"]
+
+    if event_type == "checkout.session.completed":
+        hotel = _hotel_from_billing_event(db, data)
+        if hotel:
+            customer_id = data.get("customer")
+            subscription_id = data.get("subscription")
+            if customer_id:
+                hotel.stripe_customer_id = customer_id
+            if subscription_id:
+                hotel.stripe_subscription_id = subscription_id
+            hotel.plan = "active"
+            hotel.trial_ends_at = None
+            db.commit()
+        else:
+            print("[BILLING] checkout.session.completed sin hotel resoluble (evento ignorado)")
+
+    elif event_type == "customer.subscription.updated":
+        subscription_id = data.get("id")
+        hotel = _find_hotel_by_stripe_subscription(db, subscription_id) or _find_hotel_by_stripe_customer(db, data.get("customer"))
+        if hotel:
+            status = data.get("status")
+            hotel.stripe_subscription_id = subscription_id
+            if status in ("active", "trialing", "past_due"):
+                # past_due: periodo de gracia mientras Stripe reintenta el cobro.
+                hotel.plan = "active"
+            elif status in ("canceled", "unpaid", "incomplete_expired"):
+                hotel.plan = "suspended"
+            db.commit()
+        else:
+            print(f"[BILLING] customer.subscription.updated sin hotel resoluble (status={data.get('status')})")
+
+    elif event_type == "customer.subscription.deleted":
+        subscription_id = data.get("id")
+        hotel = _find_hotel_by_stripe_subscription(db, subscription_id) or _find_hotel_by_stripe_customer(db, data.get("customer"))
+        if hotel:
+            hotel.plan = "suspended"
+            hotel.stripe_subscription_id = None
+            db.commit()
+        else:
+            print("[BILLING] customer.subscription.deleted sin hotel resoluble (evento ignorado)")
+
+    else:
+        print(f"[BILLING] evento ignorado: {event_type}")
+
+    return {"received": True}
 
 
 # ── QR redirect ────────────────────────────────────────────────────────────

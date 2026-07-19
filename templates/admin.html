@@ -736,6 +736,7 @@ await loadMe();
 await initHotelSelector();
 buildSidebar();
 loadTrialBanner();
+handleBillingReturn();
 navigate('dashboard');
 }
 
@@ -833,19 +834,58 @@ const end=parseUtc(h.trial_ends_at);
 const daysLeft=end?Math.ceil((end.getTime()-Date.now())/86400000):null;
 if(daysLeft!==null&&daysLeft>0){
 bar.className='trial-banner info';bar.style.display='flex';
-bar.innerHTML=`<span>Período de prueba: quedan ${daysLeft} día${daysLeft===1?'':'s'}</span><a class="btn btn-ghost btn-sm" href="mailto:hola@hostelflow.com">Contactar</a>`;
+bar.innerHTML=`<span>Período de prueba: quedan ${daysLeft} día${daysLeft===1?'':'s'}</span><span style="display:flex;gap:.5rem;flex-shrink:0"><button class="btn btn-primary btn-sm" onclick="startCheckout()">Activar plan</button><a class="btn btn-ghost btn-sm" href="mailto:hola@hostelflow.com">Contactar</a></span>`;
 }else{
 bar.className='trial-banner danger';bar.style.display='flex';
-bar.innerHTML=`<span>Tu período de prueba terminó — el panel está en solo lectura</span><a class="btn btn-ghost btn-sm" href="mailto:hola@hostelflow.com">Contactar</a>`;
+bar.innerHTML=`<span>Tu período de prueba terminó — el panel está en solo lectura</span><span style="display:flex;gap:.5rem;flex-shrink:0"><button class="btn btn-primary btn-sm" onclick="startCheckout()">Activar plan</button><a class="btn btn-ghost btn-sm" href="mailto:hola@hostelflow.com">Contactar</a></span>`;
 }
 }else if(plan==='suspended'){
 bar.className='trial-banner danger';bar.style.display='flex';
-bar.innerHTML=`<span>Tu cuenta está suspendida — el panel está en solo lectura</span><a class="btn btn-ghost btn-sm" href="mailto:hola@hostelflow.com">Contactar</a>`;
+bar.innerHTML=`<span>Tu cuenta está suspendida — el panel está en solo lectura</span><span style="display:flex;gap:.5rem;flex-shrink:0"><button class="btn btn-primary btn-sm" onclick="startCheckout()">Activar plan</button><a class="btn btn-ghost btn-sm" href="mailto:hola@hostelflow.com">Contactar</a></span>`;
 }else{
 bar.style.display='none';
 }
 }catch(e){
 bar.style.display='none';
+}
+}
+
+// BILLING (Stripe) — checkout y portal de facturación
+async function startCheckout(){
+try{
+const r=await api('/api/admin/billing/checkout',{method:'POST'});
+if(r&&r.url){window.location.href=r.url;}
+else{toast('No se recibió la URL de pago','error');}
+}catch(e){
+if(e.status===503)toast('La facturación aún no está configurada — contáctanos','error');
+else toast(e.message||'No se pudo iniciar el pago','error');
+}
+}
+
+async function openBillingPortal(){
+try{
+const r=await api('/api/admin/billing/portal');
+if(r&&r.url){window.location.href=r.url;}
+else{toast('No se recibió la URL del portal','error');}
+}catch(e){
+if(e.status===404)toast('Este hotel no tiene una suscripción activa','error');
+else toast(e.message||'No se pudo abrir el portal de facturación','error');
+}
+}
+
+// Retorno desde Stripe Checkout/Portal: ?billing=success|cancelled
+function handleBillingReturn(){
+const params=new URLSearchParams(location.search);
+const billing=params.get('billing');
+if(!billing)return;
+params.delete('billing');
+const qs=params.toString();
+history.replaceState({},'',location.pathname+(qs?'?'+qs:'')+location.hash);
+if(billing==='success'){
+toast('¡Pago recibido! Tu plan se activará en unos segundos…','success');
+setTimeout(()=>{loadTrialBanner();if(state.page==='config')loadConfig();},4000);
+}else if(billing==='cancelled'){
+toast('Pago cancelado — puedes intentarlo cuando quieras','info');
 }
 }
 
@@ -2180,6 +2220,8 @@ el.innerHTML=`<div class="page-title">Configuración del Hotel</div>
 <p style="font-size:.78rem;color:var(--muted);margin-bottom:.7rem">El idioma por defecto siempre está incluido. Los demás son opcionales.</p>
 <div id="langCheckboxes">${renderLanguageCheckboxes()}</div>
 </div></div>
+<div class="card"><div class="card-header"><h3>Facturación</h3></div>
+<div class="card-body">${renderBillingCard(h)}</div></div>
 <div class="card" style="grid-column:1/-1"><div class="card-header"><h3>Apariencia · Theme de la app del huésped</h3></div>
 <div class="card-body">
 <p style="font-size:.78rem;color:var(--muted);margin-bottom:.9rem">Elige el estilo visual con el que se verá la guía digital del huésped. El cambio se aplica al guardar.</p>
@@ -2253,16 +2295,39 @@ el.style.display='none';
 }catch(e){el.style.display='none';}
 }
 
+// FACTURACIÓN (Stripe) — card de Configuración
+function renderBillingCard(h){
+const plan=h.plan||'active';
+let statusHtml='';
+if(plan==='trial'){
+const end=parseUtc(h.trial_ends_at);
+const daysLeft=end?Math.ceil((end.getTime()-Date.now())/86400000):null;
+statusHtml=`<span class="badge badge-blue">Prueba${daysLeft!==null?` · ${daysLeft>0?daysLeft:0} día${daysLeft===1?'':'s'} restante${daysLeft===1?'':'s'}`:''}</span>`;
+}else if(plan==='suspended'){
+statusHtml='<span class="badge badge-red">Suspendido</span>';
+}else{
+statusHtml='<span class="badge badge-green">Activo</span>';
+}
+const hasSub=!!h.has_subscription;
+return`<div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem">${statusHtml}${hasSub?'<span style="font-size:.8rem;color:var(--muted)">Suscripción activa vía Stripe</span>':''}</div>
+${hasSub?`<button class="btn btn-ghost" onclick="openBillingPortal()">Gestionar suscripción</button>
+<p style="font-size:.78rem;color:var(--muted);margin-top:.6rem">Actualiza tu método de pago o cancela desde el portal seguro de Stripe.</p>`
+:`<button class="btn btn-primary" onclick="startCheckout()">Activar plan</button>
+<p style="font-size:.78rem;color:var(--muted);margin-top:.6rem">Un solo plan. ¿Tienes un cupón? Podrás aplicarlo al pagar.</p>`}
+<p style="font-size:.75rem;color:var(--muted);margin-top:.8rem">Las facturas se envían manualmente — escríbenos si necesitas una.</p>`;
+}
+
 // HOTELS
 function planBadge(h){
 const plan=h.plan||'active';
+const stripeMark=h.has_subscription?' <small style="color:var(--muted)">· Stripe</small>':'';
 if(plan==='trial'){
 const end=parseUtc(h.trial_ends_at);
 const dateStr=end?end.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}):'';
-return`<span class="badge badge-blue">Prueba</span>${dateStr?`<br><small style="color:var(--muted)">hasta ${esc(dateStr)}</small>`:''}`;
+return`<span class="badge badge-blue">Prueba</span>${stripeMark}${dateStr?`<br><small style="color:var(--muted)">hasta ${esc(dateStr)}</small>`:''}`;
 }
-if(plan==='suspended')return'<span class="badge badge-red">Suspendido</span>';
-return'<span class="badge badge-green">Activo</span>';
+if(plan==='suspended')return`<span class="badge badge-red">Suspendido</span>${stripeMark}`;
+return`<span class="badge badge-green">Activo</span>${stripeMark}`;
 }
 
 function hotelPlanAction(id,action){

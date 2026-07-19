@@ -107,6 +107,10 @@ class Hotel(Base):
     plan = Column(String(20), default="active")  # trial | active | suspended
     trial_ends_at = Column(DateTime, nullable=True)
 
+    # SaaS: facturación con Stripe (P6)
+    stripe_customer_id = Column(String(100), nullable=True)
+    stripe_subscription_id = Column(String(100), nullable=True)
+
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
